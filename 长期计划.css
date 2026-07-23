@@ -1703,26 +1703,13 @@ button {
   overflow: hidden;
 }
 
-.picker-summary {
-  height: 52px;
-  flex: 0 0 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  border-bottom: 1px solid #e2e6ec;
-  color: #252e3c;
-  font-size: 13px;
-}
-
-.picker-summary label,
 .column-setting-item {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.picker-summary input,
+.picker-section-title input,
 .column-setting-item input {
   width: 14px;
   height: 14px;
@@ -1741,6 +1728,7 @@ button {
   background: #f1f2f4;
   color: #252d39;
   font-size: 13px;
+  gap: 8px;
 }
 
 .column-settings-list {

@@ -490,10 +490,10 @@ const selectedColumnList = document.querySelector('#selected-column-list');
 const selectedColumnPanelCount = document.querySelector('#selected-column-panel-count');
 const resetSelectedColumnsButton = document.querySelector('#reset-selected-columns');
 const clearSelectedColumnsButton = document.querySelector('#clear-selected-columns');
-const selectAllCheckbox = document.querySelector('#column-select-all');
+const groupSelectAllCheckbox = document.querySelector('#column-group-select-all');
 const searchInput = document.querySelector('#column-search-input');
 const categoryList = document.querySelector('#picker-category-list');
-const sectionTitle = document.querySelector('#picker-section-title');
+const sectionTitleText = document.querySelector('#picker-section-title-text');
 const cancelSettingsButton = document.querySelector('#column-settings-cancel');
 const confirmSettingsButton = document.querySelector('#column-settings-confirm');
 const legacyPaymentLayer = document.querySelector('#legacy-payment-layer');
@@ -608,7 +608,17 @@ function renderColumnSettings(query = '') {
   const candidateFields = normalizedQuery ? businessColumns : (activeGroup?.fields || []);
   const visibleFields = candidateFields
     .filter((field) => field.toLowerCase().includes(normalizedQuery))
-  sectionTitle.textContent = normalizedQuery ? '搜索结果' : activeColumnGroup;
+  sectionTitleText.textContent = normalizedQuery ? '搜索结果' : activeColumnGroup;
+  groupSelectAllCheckbox.hidden = Boolean(normalizedQuery);
+  if (!normalizedQuery) {
+    const groupFields = activeGroup?.fields || [];
+    const selectedGroupFieldCount = groupFields.filter((field) => draftColumnOrder.includes(field)).length;
+    groupSelectAllCheckbox.checked = groupFields.length > 0 && selectedGroupFieldCount === groupFields.length;
+    groupSelectAllCheckbox.indeterminate =
+      selectedGroupFieldCount > 0 && selectedGroupFieldCount < groupFields.length;
+    groupSelectAllCheckbox.disabled = groupFields.length === 0;
+    groupSelectAllCheckbox.setAttribute('aria-label', `全选${activeColumnGroup}分类字段`);
+  }
   settingsList.innerHTML = visibleFields.length ? visibleFields.map((field) => `
       <label class="column-setting-item">
         <input type="checkbox" value="${field}" ${draftColumnOrder.includes(field) ? 'checked' : ''}>
@@ -642,8 +652,6 @@ function renderSelectedColumns() {
     draftColumnOrder.length === businessColumns.length
     && draftColumnOrder.every((field, index) => field === businessColumns[index]);
   clearSelectedColumnsButton.disabled = draftColumnOrder.length === 0;
-  selectAllCheckbox.checked = draftColumnOrder.length === businessColumns.length;
-  selectAllCheckbox.indeterminate = draftColumnOrder.length > 0 && draftColumnOrder.length < businessColumns.length;
 }
 
 function refreshSettings() {
@@ -665,8 +673,16 @@ settingsList.addEventListener('change', (event) => {
   refreshSettings();
 });
 
-selectAllCheckbox.addEventListener('change', () => {
-  draftColumnOrder = selectAllCheckbox.checked ? [...businessColumns] : [];
+groupSelectAllCheckbox.addEventListener('change', () => {
+  const activeGroup = columnGroups.find((group) => group.name === activeColumnGroup);
+  const groupFields = activeGroup?.fields || [];
+  if (groupSelectAllCheckbox.checked) {
+    groupFields.forEach((field) => {
+      if (!draftColumnOrder.includes(field)) draftColumnOrder.push(field);
+    });
+  } else {
+    draftColumnOrder = draftColumnOrder.filter((field) => !groupFields.includes(field));
+  }
   refreshSettings();
 });
 
