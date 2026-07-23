@@ -1765,9 +1765,10 @@ button {
 
 .selected-column-panel {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   padding: 12px 24px;
   background: #eef4ff;
 }
@@ -1810,15 +1811,15 @@ button {
 
 .selected-column-action-tooltip::before {
   content: "";
-  top: calc(100% + 3px);
+  bottom: calc(100% + 3px);
   border: 5px solid transparent;
-  border-bottom-color: #253044;
-  transform: translateY(-3px);
+  border-top-color: #253044;
+  transform: translateY(3px);
 }
 
 .selected-column-action-tooltip::after {
   content: attr(data-tooltip);
-  top: calc(100% + 13px);
+  bottom: calc(100% + 13px);
   width: max-content;
   max-width: 220px;
   padding: 7px 10px;
@@ -1830,7 +1831,7 @@ button {
   line-height: 18px;
   white-space: nowrap;
   box-shadow: 0 4px 12px rgba(31, 35, 41, 0.18);
-  transform: translateY(-3px);
+  transform: translateY(3px);
 }
 
 .selected-column-action-tooltip:hover::before,
