@@ -490,10 +490,8 @@ const selectedColumnList = document.querySelector('#selected-column-list');
 const selectedColumnPanelCount = document.querySelector('#selected-column-panel-count');
 const resetSelectedColumnsButton = document.querySelector('#reset-selected-columns');
 const clearSelectedColumnsButton = document.querySelector('#clear-selected-columns');
-const groupSelectAllCheckbox = document.querySelector('#column-group-select-all');
 const searchInput = document.querySelector('#column-search-input');
 const categoryList = document.querySelector('#picker-category-list');
-const sectionTitleText = document.querySelector('#picker-section-title-text');
 const cancelSettingsButton = document.querySelector('#column-settings-cancel');
 const confirmSettingsButton = document.querySelector('#column-settings-confirm');
 const legacyPaymentLayer = document.querySelector('#legacy-payment-layer');
@@ -604,27 +602,50 @@ longTermFilterReset.addEventListener('click', () => {
 
 function renderColumnSettings(query = '') {
   const normalizedQuery = query.trim().toLowerCase();
-  const activeGroup = columnGroups.find((group) => group.name === activeColumnGroup);
-  const candidateFields = normalizedQuery ? businessColumns : (activeGroup?.fields || []);
-  const visibleFields = candidateFields
-    .filter((field) => field.toLowerCase().includes(normalizedQuery))
-  sectionTitleText.textContent = normalizedQuery ? '搜索结果' : activeColumnGroup;
-  groupSelectAllCheckbox.hidden = Boolean(normalizedQuery);
-  if (!normalizedQuery) {
-    const groupFields = activeGroup?.fields || [];
-    const selectedGroupFieldCount = groupFields.filter((field) => draftColumnOrder.includes(field)).length;
-    groupSelectAllCheckbox.checked = groupFields.length > 0 && selectedGroupFieldCount === groupFields.length;
-    groupSelectAllCheckbox.indeterminate =
-      selectedGroupFieldCount > 0 && selectedGroupFieldCount < groupFields.length;
-    groupSelectAllCheckbox.disabled = groupFields.length === 0;
-    groupSelectAllCheckbox.setAttribute('aria-label', `全选${activeColumnGroup}分类字段`);
-  }
-  settingsList.innerHTML = visibleFields.length ? visibleFields.map((field) => `
+  const renderFields = (fields) => fields.length ? fields.map((field) => `
       <label class="column-setting-item">
         <input type="checkbox" value="${field}" ${draftColumnOrder.includes(field) ? 'checked' : ''}>
         <span>${field}</span>
       </label>
     `).join('') : `<div class="column-settings-empty">${normalizedQuery ? '暂无匹配字段' : '暂无字段'}</div>`;
+
+  if (normalizedQuery) {
+    const visibleFields = businessColumns
+      .filter((field) => field.toLowerCase().includes(normalizedQuery));
+    settingsList.innerHTML = `
+      <section class="column-settings-section is-search-results">
+        <div class="picker-section-title"><span>搜索结果</span></div>
+        <div class="column-settings-grid">${renderFields(visibleFields)}</div>
+      </section>
+    `;
+    return;
+  }
+
+  settingsList.innerHTML = columnGroups.map((group) => {
+    const selectedGroupFieldCount =
+      group.fields.filter((field) => draftColumnOrder.includes(field)).length;
+    const isAllSelected =
+      group.fields.length > 0 && selectedGroupFieldCount === group.fields.length;
+    return `
+      <section class="column-settings-section" data-column-section="${group.name}">
+        <label class="picker-section-title">
+          <input type="checkbox" data-select-group="${group.name}"
+            ${isAllSelected ? 'checked' : ''}
+            aria-label="全选${group.name}分类字段">
+          <span>${group.name}</span>
+        </label>
+        <div class="column-settings-grid">${renderFields(group.fields)}</div>
+      </section>
+    `;
+  }).join('');
+
+  settingsList.querySelectorAll('[data-select-group]').forEach((checkbox) => {
+    const group = columnGroups.find((item) => item.name === checkbox.dataset.selectGroup);
+    const selectedGroupFieldCount =
+      group.fields.filter((field) => draftColumnOrder.includes(field)).length;
+    checkbox.indeterminate =
+      selectedGroupFieldCount > 0 && selectedGroupFieldCount < group.fields.length;
+  });
 }
 
 function renderColumnCategories() {
@@ -654,10 +675,12 @@ function renderSelectedColumns() {
   clearSelectedColumnsButton.disabled = draftColumnOrder.length === 0;
 }
 
-function refreshSettings() {
+function refreshSettings(preserveFieldScroll = false) {
+  const previousFieldScrollTop = settingsList.scrollTop;
   renderColumnCategories();
   renderColumnSettings(searchInput.value);
   renderSelectedColumns();
+  if (preserveFieldScroll) settingsList.scrollTop = previousFieldScrollTop;
 }
 
 function closeSettings() {
@@ -668,28 +691,28 @@ function closeSettings() {
 settingsList.addEventListener('change', (event) => {
   const checkbox = event.target;
   if (!(checkbox instanceof HTMLInputElement)) return;
+  if (checkbox.matches('[data-select-group]')) {
+    const group = columnGroups.find((item) => item.name === checkbox.dataset.selectGroup);
+    if (!group) return;
+    if (checkbox.checked) {
+      group.fields.forEach((field) => {
+        if (!draftColumnOrder.includes(field)) draftColumnOrder.push(field);
+      });
+    } else {
+      draftColumnOrder = draftColumnOrder.filter((field) => !group.fields.includes(field));
+    }
+    refreshSettings(true);
+    return;
+  }
   if (checkbox.checked && !draftColumnOrder.includes(checkbox.value)) draftColumnOrder.push(checkbox.value);
   if (!checkbox.checked) draftColumnOrder = draftColumnOrder.filter((field) => field !== checkbox.value);
-  refreshSettings();
-});
-
-groupSelectAllCheckbox.addEventListener('change', () => {
-  const activeGroup = columnGroups.find((group) => group.name === activeColumnGroup);
-  const groupFields = activeGroup?.fields || [];
-  if (groupSelectAllCheckbox.checked) {
-    groupFields.forEach((field) => {
-      if (!draftColumnOrder.includes(field)) draftColumnOrder.push(field);
-    });
-  } else {
-    draftColumnOrder = draftColumnOrder.filter((field) => !groupFields.includes(field));
-  }
-  refreshSettings();
+  refreshSettings(true);
 });
 
 clearSelectedColumnsButton.addEventListener('click', () => {
   if (draftColumnOrder.length === 0) return;
   draftColumnOrder = [];
-  refreshSettings();
+  refreshSettings(true);
 });
 
 resetSelectedColumnsButton.addEventListener('click', () => {
@@ -698,7 +721,7 @@ resetSelectedColumnsButton.addEventListener('click', () => {
     && draftColumnOrder.every((field, index) => field === businessColumns[index]);
   if (isDefaultConfiguration) return;
   draftColumnOrder = [...businessColumns];
-  refreshSettings();
+  refreshSettings(true);
 });
 
 searchInput.addEventListener('input', () => renderColumnSettings(searchInput.value));
@@ -707,15 +730,44 @@ categoryList.addEventListener('click', (event) => {
   const categoryButton = event.target.closest('[data-column-group]');
   if (!categoryButton) return;
   activeColumnGroup = categoryButton.dataset.columnGroup;
+  if (searchInput.value) {
+    searchInput.value = '';
+    renderColumnSettings();
+  }
   renderColumnCategories();
-  renderColumnSettings(searchInput.value);
+  const section = Array.from(settingsList.querySelectorAll('[data-column-section]'))
+    .find((item) => item.dataset.columnSection === activeColumnGroup);
+  if (!section) return;
+  const targetTop =
+    section.getBoundingClientRect().top
+    - settingsList.getBoundingClientRect().top
+    + settingsList.scrollTop;
+  settingsList.scrollTo({ top: targetTop, behavior: 'smooth' });
+});
+
+settingsList.addEventListener('scroll', () => {
+  if (searchInput.value) return;
+  const sections = Array.from(settingsList.querySelectorAll('[data-column-section]'));
+  if (!sections.length) return;
+  let currentSection = sections[0];
+  const listTop = settingsList.getBoundingClientRect().top + 8;
+  sections.forEach((section) => {
+    if (section.getBoundingClientRect().top <= listTop) currentSection = section;
+  });
+  if (settingsList.scrollTop + settingsList.clientHeight >= settingsList.scrollHeight - 2) {
+    currentSection = sections[sections.length - 1];
+  }
+  const nextActiveGroup = currentSection.dataset.columnSection;
+  if (nextActiveGroup === activeColumnGroup) return;
+  activeColumnGroup = nextActiveGroup;
+  renderColumnCategories();
 });
 
 selectedColumnList.addEventListener('click', (event) => {
   const removeButton = event.target.closest('[data-remove-field]');
   if (!removeButton) return;
   draftColumnOrder = draftColumnOrder.filter((field) => field !== removeButton.dataset.removeField);
-  refreshSettings();
+  refreshSettings(true);
 });
 
 selectedColumnList.addEventListener('dragstart', (event) => {
