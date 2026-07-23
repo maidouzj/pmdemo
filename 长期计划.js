@@ -607,7 +607,7 @@ function renderColumnSettings(query = '') {
         <input type="checkbox" value="${field}" ${draftColumnOrder.includes(field) ? 'checked' : ''}>
         <span>${field}</span>
       </label>
-    `).join('') : `<div class="column-settings-empty">${normalizedQuery ? '暂无匹配字段' : '暂无字段'}</div>`;
+    `).join('') : `<div class="column-settings-empty">${normalizedQuery ? '暂无匹配字段' : '暂无指标'}</div>`;
 
   if (normalizedQuery) {
     const visibleFields = businessColumns
