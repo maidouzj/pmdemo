@@ -610,14 +610,23 @@ function renderColumnSettings(query = '') {
     `).join('') : `<div class="column-settings-empty">${normalizedQuery ? '暂无匹配字段' : '暂无指标'}</div>`;
 
   if (normalizedQuery) {
-    const visibleFields = businessColumns
-      .filter((field) => field.toLowerCase().includes(normalizedQuery));
-    settingsList.innerHTML = `
-      <section class="column-settings-section is-search-results">
-        <div class="picker-section-title"><span>搜索结果</span></div>
-        <div class="column-settings-grid">${renderFields(visibleFields)}</div>
+    const matchedGroups = columnGroups
+      .map((group) => ({
+        ...group,
+        fields: group.fields.filter((field) => field.toLowerCase().includes(normalizedQuery))
+      }))
+      .filter((group) => group.fields.length);
+    settingsList.innerHTML = matchedGroups.length ? matchedGroups.map((group) => `
+      <section class="column-settings-section is-search-results"
+        data-column-section="${group.name}">
+        <div class="picker-section-title"><span>${group.name}</span></div>
+        <div class="column-settings-grid">${renderFields(group.fields)}</div>
       </section>
-    `;
+    `).join('') : `<div class="column-settings-empty">暂无匹配字段</div>`;
+    if (matchedGroups.length) {
+      activeColumnGroup = matchedGroups[0].name;
+      renderColumnCategories();
+    }
     return;
   }
 
@@ -729,15 +738,12 @@ searchInput.addEventListener('input', () => renderColumnSettings(searchInput.val
 categoryList.addEventListener('click', (event) => {
   const categoryButton = event.target.closest('[data-column-group]');
   if (!categoryButton) return;
-  activeColumnGroup = categoryButton.dataset.columnGroup;
-  if (searchInput.value) {
-    searchInput.value = '';
-    renderColumnSettings();
-  }
-  renderColumnCategories();
+  const targetGroup = categoryButton.dataset.columnGroup;
   const section = Array.from(settingsList.querySelectorAll('[data-column-section]'))
-    .find((item) => item.dataset.columnSection === activeColumnGroup);
+    .find((item) => item.dataset.columnSection === targetGroup);
   if (!section) return;
+  activeColumnGroup = targetGroup;
+  renderColumnCategories();
   const targetTop =
     section.getBoundingClientRect().top
     - settingsList.getBoundingClientRect().top
@@ -746,7 +752,6 @@ categoryList.addEventListener('click', (event) => {
 });
 
 settingsList.addEventListener('scroll', () => {
-  if (searchInput.value) return;
   const sections = Array.from(settingsList.querySelectorAll('[data-column-section]'));
   if (!sections.length) return;
   let currentSection = sections[0];
