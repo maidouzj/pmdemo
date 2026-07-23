@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新建长期计划</title>
+  <link rel="stylesheet" href="新建长期计划.css?v=20260720-8">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="长期计划.html" aria-label="返回长期计划列表">
+      <span class="brand-mark">➤</span><strong>畅移智投</strong>
+    </a>
+    <nav class="top-nav" aria-label="产品导航">
+      <a href="#">首页</a><a class="active" href="长期计划.html">微信豆</a><a href="#">ADQ</a>
+      <a href="#">小店</a><a href="#">智能中心</a><a href="#">策略中心</a><a href="#">下载中心</a>
+      <a href="#">账号管理</a><a href="#">推广奖励</a><a href="#">会员服务</a>
+    </nav>
+    <div class="top-actions"><span>♧ 操作手册</span><span>◔</span><span>♧</span><span>⛶</span><span class="account">15757712203<br><small>ID: 10000001</small></span><span class="avatar">人</span></div>
+  </header>
+
+  <aside class="icon-rail" aria-label="微信豆功能栏">
+    <a class="active" href="长期计划.html" aria-label="计划管理">▣</a><a href="#">♙</a><a href="#">□</a>
+    <a href="#">♧</a><a href="#">▤</a><a href="#">⊙</a><a href="#">▧</a><a href="#">♧</a>
+    <a class="rail-bottom" href="#">≡</a>
+  </aside>
+
+  <main class="page-shell">
+    <div class="form-column">
+      <section class="card setup-card">
+        <h2>基础信息</h2>
+        <div class="form-row">
+          <label class="required">计划名称</label>
+          <div class="form-field"><input id="plan-name" class="form-input" type="text" value="产品测试" placeholder="请输入计划名称"><small id="plan-name-error" class="field-error" hidden>计划名称不能为空</small></div>
+        </div>
+        <div class="form-row compact-row">
+          <label class="required">创建数量 <span class="help">?</span></label>
+          <div class="stepper"><button type="button" data-step="-1">−</button><span id="plan-count">1</span><button type="button" data-step="1">＋</button></div>
+        </div>
+        <div class="form-row account-row">
+          <label class="required">投放号</label>
+          <div>
+            <div class="select account-select"><span class="account-avatar">♟</span><strong id="delivery-account-name">测试专用账号(畅移小店)-(在线)</strong><span>⌄</span></div>
+            <div class="balance"><i></i> 余额：27563</div>
+          </div>
+          <button class="text-button" type="button">投放号授权</button>
+        </div>
+        <div class="form-row"><label class="required">加热账号</label><div class="form-field"><label class="select native-select"><select id="heating-account"><option value="" selected>请选择直播账号</option><option value="李宁官方品牌店">李宁官方品牌店</option><option value="tel小小店非正式账号">tel小小店非正式账号</option></select><span>⌄</span></label><small id="heating-account-error" class="field-error" hidden>请选择被投号</small></div></div>
+        <div class="form-row"><label>计划分组</label><button class="select placeholder" type="button">请选择计划分组 <span>⌄</span></button><button class="text-button" type="button">新建计划分组</button></div>
+        <div class="form-row shutdown-strategy-row">
+          <label>关停策略(订单)</label>
+          <button id="shutdown-strategy-switch" class="switch" type="button" role="switch" aria-checked="false"><span></span></button>
+          <div id="shutdown-strategy-select" class="shutdown-strategy-select" hidden>
+            <button id="shutdown-strategy-trigger" class="shutdown-strategy-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span id="shutdown-strategy-tags" class="shutdown-strategy-tags"></span><b aria-hidden="true">⌕</b>
+            </button>
+            <div id="shutdown-strategy-options" class="shutdown-strategy-options" role="listbox" aria-multiselectable="true" hidden>
+              <label><input type="checkbox" value="或者(启用)"><span></span>或者(启用)</label>
+              <label><input type="checkbox" value="44(启用)"><span></span>44(启用)</label>
+              <label><input type="checkbox" value="2.8关停回归(启用)"><span></span>2.8关停回归(启用)</label>
+              <label><input type="checkbox" value="关停逻辑回归(启用)"><span></span>关停逻辑回归(启用)</label>
+              <label><input type="checkbox" value="【演示】亏损监控(启用)"><span></span>【演示】亏损监控(启用)</label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card target-card">
+        <h2>加热目标</h2>
+        <div class="estimate"><strong>预计带来观看量</strong><span>（实际效果与直播质量有关，若加热未完成，直播结束后剩余流量券和微信豆将返还）</span><b>50~500 人</b></div>
+        <div class="form-row priority-target-row">
+          <label>优先提升目标</label>
+          <label class="priority-target-select">
+            <select id="priority-target" aria-label="优先提升目标">
+              <option value="product-click" selected>直播间商品点击</option>
+              <option value="transaction">直播间成交</option>
+              <option value="roi">7日ROI</option>
+              <option value="viewer">直播间观众</option>
+              <option value="interaction">直播间互动</option>
+              <option value="followers">直播间涨粉</option>
+            </select>
+            <span>⌄</span>
+          </label>
+        </div>
+        <div class="form-row budget-row">
+          <label>每日预算</label>
+          <div class="budget-content">
+            <div class="radio-line" id="daily-budget-options">
+              <label><input type="radio" name="daily-budget" value="100" checked><span></span>￥100</label>
+              <label><input type="radio" name="daily-budget" value="500"><span></span>￥500</label>
+              <label><input type="radio" name="daily-budget" value="1000"><span></span>￥1000</label>
+              <label><input type="radio" name="daily-budget" value="2000"><span></span>￥2000</label>
+              <label><input type="radio" name="daily-budget" value="5000"><span></span>￥5000</label>
+              <label><input type="radio" name="daily-budget" value="custom"><span></span>自定义</label>
+            </div>
+            <div class="custom-budget-row" hidden>
+              <input id="custom-daily-budget" type="number" min="100" max="300000" placeholder="请输入自定义预算金额（元）">
+              <span>每日预算金额需在￥100-￥300000之间</span>
+            </div>
+            <small id="daily-budget-error" class="field-error" hidden>请输入￥100-￥300000之间的每日预算</small>
+          </div>
+        </div>
+        <div class="form-row period-row">
+          <label class="required">加热周期</label>
+          <div class="form-field"><div id="heating-period-control" class="date-range-control"><input id="heating-start-date" type="date" value="2026-07-21" aria-label="加热开始日期"><i>-</i><input id="heating-end-date" type="date" value="2026-08-20" aria-label="加热结束日期"><b>▣</b></div><small id="heating-period-error" class="field-error" hidden>请选择正确的加热周期</small></div>
+        </div>
+        <div class="form-row time-row">
+          <label>加热时段 <span class="help">?</span></label>
+          <button class="time-control" type="button"><span>00:00</span><b>◷</b></button>
+          <button class="time-control" type="button"><span>00:30</span><b>◷</b></button>
+        </div>
+        <div class="form-row material-row"><label class="required">加热素材</label><div id="heating-material-control" class="material-content"><div><label><input id="direct-heating-material" type="checkbox"> 直接加热直播间</label><label><input id="short-video-heating-material" type="checkbox"> 短视频加热直播间</label></div><small id="heating-material-error" class="field-error" hidden>请至少选择一种加热素材</small></div></div>
+        <div id="short-video-material-row" class="form-row short-video-material-row" hidden><label class="required">短视频素材</label><div class="form-field short-video-material-field"><button id="open-video-selector" type="button">请选择短视频</button><div id="selected-video-tags" class="selected-video-tags" aria-live="polite"></div><small id="short-video-material-error" class="field-error" hidden>请选择短视频素材</small></div></div>
+        <div id="selected-video-cover-preview" class="selected-video-cover-preview" role="img" hidden><span></span></div>
+      </section>
+
+      <section class="card audience-card">
+        <h2>定向人群</h2>
+        <button class="import-link" type="button">从定向人群模板导入</button>
+        <div class="audience-row"><label>根据粉丝层推荐</label><div class="radio-line"><label><input type="radio" name="fans" checked><span></span>不限</label><label><input type="radio" name="fans"><span></span>选择作者相似的粉丝</label><em>将定向推给你选择作者的粉丝，以及与粉丝相似的人</em></div></div>
+        <div id="author-customer-row" class="audience-row author-customer-row" hidden>
+          <label>作者新客
+            <span class="author-help" tabindex="0">?
+              <span class="author-help-popover">新客为历史未对当前加热对象下单的用户，新客探索可能需要更高成本，出价过低或定向限制过多可能导致无法起量</span>
+            </span>
+          </label>
+          <div class="author-customer-options">
+            <div class="radio-line">
+              <label><input type="radio" name="author-customer" value="all" checked><span></span>不限</label>
+              <label><input type="radio" name="author-customer" value="new"><span></span>新客</label>
+              <label><input type="radio" name="author-customer" value="old"><span></span>老客</label>
+            </div>
+            <div id="author-customer-confirm" class="author-customer-confirm" role="dialog" aria-label="作者新客开白确认" hidden>
+              <p>需要账号开白该功能，未开白账号使用可能导致该功能开启失败</p>
+              <div>
+                <button id="cancel-author-customer" type="button">取消</button>
+                <button id="confirm-author-customer" type="button">确认已开通</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="audience-row"><label>观众性别</label><div class="radio-line"><label><input type="radio" name="gender" checked><span></span>不限</label><label><input type="radio" name="gender"><span></span>男</label><label><input type="radio" name="gender"><span></span>女</label></div></div>
+        <div class="audience-row"><label>观众设备</label><div class="radio-line"><label><input type="radio" name="device" checked><span></span>不限</label><label><input type="radio" name="device"><span></span>iOS</label><label><input type="radio" name="device"><span></span>安卓</label></div></div>
+        <div class="audience-row"><label>观众年龄</label><button class="select placeholder" type="button">请选择观众年龄 <span>⌄</span></button><button class="text-button" type="button">全选</button></div>
+        <div class="audience-row"><label>观众城市</label><button class="select placeholder" type="button">请选择观众城市 <span>⌄</span></button><button class="text-button" type="button">全选</button></div>
+        <div class="audience-row"><label>观众兴趣</label><button class="select placeholder" type="button">请选择观众兴趣 <span>⌄</span></button><button class="text-button" type="button">全选</button></div>
+        <button class="outline-button" type="button">保存为定向人群模板</button>
+      </section>
+    </div>
+
+    <aside class="order-card card">
+      <h2>订单详情</h2>
+      <div class="detail-row"><span>小店账号</span><strong class="shop-account"><i>店</i> 上海聚贤信息</strong></div>
+      <div class="detail-row"><span>被投号</span><strong>-</strong></div>
+      <div class="divider"></div>
+
+      <section class="order-option-section">
+        <h3>订单支付方式</h3>
+        <div class="order-radio-line payment-options">
+          <label class="is-disabled"><input type="radio" name="payment-method" disabled> 现金</label>
+          <label><input type="radio" name="payment-method" checked> 微信豆</label>
+        </div>
+        <p class="payment-notice">长期计划当前仅支持使用微信豆余额支付及扣费，若微信豆余额不足，计划将暂停</p>
+      </section>
+
+      <div class="divider"></div>
+      <div class="total-row"><span>订单数量</span><strong id="order-count">1个</strong></div>
+      <div class="total-row"><span>订单总金额</span><strong class="total-amount" id="order-total">￥100.00</strong></div>
+      <button id="submit-plan" class="submit-button" type="button">提交创建</button>
+    </aside>
+  </main>
+  <div id="video-selector-layer" class="video-selector-layer" hidden>
+    <section class="video-selector-dialog" role="dialog" aria-modal="true" aria-labelledby="video-selector-title">
+      <header><h2 id="video-selector-title">选择视频</h2><button id="close-video-selector" type="button" aria-label="关闭">×</button></header>
+      <div class="video-selector-content">
+        <div class="video-selected-bar">
+          <strong id="video-selected-count">已选0/50</strong>
+          <div id="video-selected-chips" class="video-selected-chips"></div>
+          <button type="button">找不到短视频？</button>
+        </div>
+        <div class="video-filter-panel">
+          <div><div id="video-selection-filter" class="video-selection-filter"><button id="video-selection-filter-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="video-selection-filter-label">全部素材（16）</span><span>⌄</span></button><div id="video-selection-filter-panel" class="video-selection-filter-panel" role="listbox" aria-multiselectable="true" hidden><button type="button" role="option" data-video-selection-filter="selected" aria-selected="false"><i>✓</i><span>已选</span><em data-video-selection-count="selected">0</em></button><button type="button" role="option" data-video-selection-filter="unselected" aria-selected="false"><i>✓</i><span>未选</span><em data-video-selection-count="unselected">16</em></button></div></div><button type="button">请选择存在投放渠道　⌄</button><button type="button">请选择未投放渠道　⌄</button><button type="button">请选择单渠道价值　⌄</button><button type="button">请选择分类标记　⌄</button><input type="text" placeholder="搜索短视频备注"></div>
+          <div><input type="text" placeholder="搜索CY编号"><input type="text" placeholder="搜索视频号描述"><button type="button">上传时间　⌄</button><button type="button">开始时间　　-　　结束时间　▣</button><button type="button">重置</button></div>
+        </div>
+        <div class="video-list-panel">
+          <nav><button class="active" type="button">全部短视频　98</button><button type="button">全域爆款　0</button><button type="button">局部高潜　0</button><button type="button">表现分化　0</button><button type="button">全域衰退　1</button></nav>
+          <div class="video-table-wrap">
+            <table class="video-selector-table">
+              <thead><tr><th><label class="video-select-all-label"><input id="video-select-all" type="checkbox" aria-label="全选当前筛选结果"><span>全选</span></label></th><th>短视频备注/视频描述/CY编号</th><th>分类标记</th><th>渠道投放价值</th><th>全域总消耗</th><th>全域点击率</th><th>全域ROI</th><th>视频号上传时间</th><th>上传者</th></tr></thead>
+              <tbody id="video-selector-body"></tbody>
+            </table>
+          </div>
+          <div class="video-pagination"><span>共 98 条</span><button type="button">‹</button><button class="active" type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button><span>…</span><button type="button">10</button><button type="button">›</button><button type="button">10 条/页　⌄</button></div>
+        </div>
+      </div>
+      <footer><span>仅展示3个月以内的短视频，最多可选50个</span><button id="cancel-video-selector" type="button">取消</button><button id="confirm-video-selector" type="button">确定</button></footer>
+    </section>
+  </div>
+  <div id="confirm-create-layer" class="confirm-create-layer" hidden>
+    <section class="confirm-create-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-create-title">
+      <h2 id="confirm-create-title"><span aria-hidden="true">!</span>确认要提交创建吗？</h2>
+      <div class="confirm-create-summary">
+        <div><span>订单数量：</span><strong id="confirm-plan-count">1个</strong></div>
+        <div><span>提升目标：</span><strong id="confirm-priority-target">直播间商品点击</strong></div>
+        <div><span>每日预算：</span><strong id="confirm-daily-budget">￥0.00</strong></div>
+        <div><span>加热周期：</span><strong id="confirm-heating-period">2026-07-21 - 2026-08-20</strong></div>
+        <div><span>订单支付：</span><strong>微信豆支付</strong></div>
+      </div>
+      <div class="confirm-create-actions">
+        <button id="cancel-confirm-create" type="button">取消</button>
+        <button id="confirm-create" type="button">确定</button>
+      </div>
+    </section>
+  </div>
+  <div id="payment-order-layer" class="payment-order-layer" hidden>
+    <section class="payment-order-dialog" role="dialog" aria-modal="true" aria-labelledby="payment-order-title">
+      <header><h2 id="payment-order-title">计划订单</h2><button id="close-payment-order" type="button" aria-label="关闭">×</button></header>
+      <div class="payment-order-content">
+        <p class="payment-order-warning">注：请使用对应投放号的微信扫描每条计划的二维码进行支付</p>
+        <p class="payment-order-status">已成功支付 <strong>0</strong> 条，还有 <strong id="pending-payment-count">1</strong> 条待支付</p>
+        <p class="payment-order-description">每条订单需预支付1微信豆以核验账户安全，提交后将返还至对应账户；直播间开播后，系统将按每条订单的每日预算锁定对应微信豆余额，并在加热期间按实际消耗实时扣减，余额不足时计划将暂停。</p>
+        <div class="payment-order-table-wrap"><table class="payment-order-table"><thead><tr><th>计划名称</th><th>投放号</th><th>优先提升目标</th><th>支付金额</th><th>每日预算</th><th>支付二维码（点击可放大二维码）</th></tr></thead><tbody id="payment-order-body"></tbody></table></div>
+        <div class="payment-order-pagination"><button type="button">‹</button><button class="active" type="button">1</button><button type="button">›</button></div>
+      </div>
+      <footer><button id="cancel-payment-order" type="button">取消</button><button id="confirm-payment-order" type="button">确定</button></footer>
+    </section>
+  </div>
+  <div id="account-warning-toast" class="account-warning-toast" hidden><b aria-hidden="true">×</b><span>请选择被投号</span></div>
+  <div id="success-toast" class="toast" hidden>计划订单已创建，请完成扫码支付</div>
+  <script src="新建长期计划.js?v=20260720-9"></script>
+</body>
+</html>
