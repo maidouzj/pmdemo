@@ -134,8 +134,8 @@ function renderStatisticsColumnSettings() {
     </div>
   `).join('') : `
     <div class="statistics-selected-column-empty">
-      <span>暂无已选字段</span>
-      <p>请从左侧勾选需要展示的字段</p>
+      <span>暂无已选指标</span>
+      <p>请从左侧勾选需要展示的指标</p>
     </div>
   `;
 
@@ -673,8 +673,8 @@ function renderSelectedColumns() {
     </div>
   `).join('') : `
     <div class="selected-column-empty">
-      <span>暂无已选字段</span>
-      <p>请从左侧勾选需要展示的字段</p>
+      <span>暂无已选指标</span>
+      <p>请从左侧勾选需要展示的指标</p>
     </div>
   `;
   selectedColumnPanelCount.textContent = String(draftColumnOrder.length);
