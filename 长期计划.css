@@ -810,18 +810,6 @@ button {
   overflow-y: auto;
 }
 
-.statistics-column-options-summary {
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 22px;
-  border-bottom: 1px solid #e3e7ee;
-  color: #283446;
-  font-size: 13px;
-}
-
-.statistics-column-options-summary label,
 .statistics-column-option {
   display: flex;
   align-items: center;
@@ -835,9 +823,20 @@ button {
 .statistics-column-group-title {
   margin: 12px 8px;
   padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   border: 1px solid #d9dee7;
   background: #f3f4f6;
   color: #263246;
+  font-size: 13px;
+}
+
+.statistics-column-group-title input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #2166f5;
 }
 
 .statistics-column-options {
@@ -845,6 +844,13 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px 28px;
   padding: 12px 26px 24px;
+}
+
+.statistics-column-empty {
+  grid-column: 1 / -1;
+  padding: 38px 0;
+  color: #98a2b3;
+  text-align: center;
 }
 
 .statistics-column-option {
@@ -880,6 +886,12 @@ button {
 
 .statistics-selected-column-header strong {
   font-weight: 500;
+}
+
+.statistics-selected-column-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .statistics-selected-column-header button {

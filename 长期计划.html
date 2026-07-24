@@ -834,10 +834,10 @@
           <div class="statistics-column-picker-content">
             <aside class="statistics-column-category">其他</aside>
             <div class="statistics-column-options-area">
-              <div class="statistics-column-options-summary">
-                <label><input id="statistics-column-select-all" type="checkbox"> 全部字段</label>
-              </div>
-              <div class="statistics-column-group-title">其他</div>
+              <label class="statistics-column-group-title">
+                <input id="statistics-column-category-select-all" type="checkbox" aria-label="全选其他分类指标">
+                <span>其他</span>
+              </label>
               <div id="statistics-column-options" class="statistics-column-options"></div>
             </div>
           </div>
@@ -845,7 +845,12 @@
         <section class="statistics-selected-column-panel" aria-label="已选字段排序">
           <div class="statistics-selected-column-header">
             <span>已选字段（<strong id="statistics-selected-column-panel-count">0</strong>）</span>
-            <button id="statistics-clear-selected-columns" type="button">清空</button>
+            <div class="statistics-selected-column-header-actions">
+              <span class="selected-column-action-tooltip" data-tooltip="恢复默认排序及全选状态">
+                <button id="statistics-reset-selected-columns" type="button" aria-label="重置，恢复默认排序及全选状态">重置</button>
+              </span>
+              <button id="statistics-clear-selected-columns" type="button">清空</button>
+            </div>
           </div>
           <div id="statistics-selected-columns" class="statistics-selected-columns"></div>
         </section>

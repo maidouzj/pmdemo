@@ -97,8 +97,9 @@ const statisticsSettingsClose = document.querySelector('#statistics-column-close
 const statisticsSettingsCancel = document.querySelector('#statistics-column-cancel');
 const statisticsSettingsConfirm = document.querySelector('#statistics-column-confirm');
 const statisticsColumnSearch = document.querySelector('#statistics-column-search');
-const statisticsColumnSelectAll = document.querySelector('#statistics-column-select-all');
+const statisticsColumnCategorySelectAll = document.querySelector('#statistics-column-category-select-all');
 const statisticsSelectedColumnPanelCount = document.querySelector('#statistics-selected-column-panel-count');
+const statisticsResetSelectedColumnsButton = document.querySelector('#statistics-reset-selected-columns');
 const statisticsClearSelectedColumnsButton = document.querySelector('#statistics-clear-selected-columns');
 const statisticsColumnOptions = document.querySelector('#statistics-column-options');
 const statisticsSelectedColumns = document.querySelector('#statistics-selected-columns');
@@ -119,12 +120,12 @@ let draggedStatisticsColumn = '';
 function renderStatisticsColumnSettings() {
   const keyword = statisticsColumnSearch.value.trim().toLowerCase();
   const visibleFields = statisticsColumnFields.filter((field) => field.toLowerCase().includes(keyword));
-  statisticsColumnOptions.innerHTML = visibleFields.map((field) => `
+  statisticsColumnOptions.innerHTML = visibleFields.length ? visibleFields.map((field) => `
     <label class="statistics-column-option">
       <input type="checkbox" value="${field}" ${draftStatisticsColumns.includes(field) ? 'checked' : ''}>
       <span>${field}</span>
     </label>
-  `).join('');
+  `).join('') : `<div class="statistics-column-empty">${keyword ? '暂无匹配指标' : '暂无指标'}</div>`;
 
   statisticsSelectedColumns.innerHTML = draftStatisticsColumns.length ? draftStatisticsColumns.map((field) => `
     <div class="statistics-selected-column" draggable="true" data-statistics-column="${field}">
@@ -140,9 +141,14 @@ function renderStatisticsColumnSettings() {
   `;
 
   statisticsSelectedColumnPanelCount.textContent = String(draftStatisticsColumns.length);
+  statisticsResetSelectedColumnsButton.disabled =
+    draftStatisticsColumns.length === statisticsColumnFields.length
+    && draftStatisticsColumns.every((field, index) => field === statisticsColumnFields[index]);
   statisticsClearSelectedColumnsButton.disabled = draftStatisticsColumns.length === 0;
-  statisticsColumnSelectAll.checked = draftStatisticsColumns.length === statisticsColumnFields.length;
-  statisticsColumnSelectAll.indeterminate = draftStatisticsColumns.length > 0 && !statisticsColumnSelectAll.checked;
+  statisticsColumnCategorySelectAll.hidden = Boolean(keyword);
+  statisticsColumnCategorySelectAll.checked = draftStatisticsColumns.length === statisticsColumnFields.length;
+  statisticsColumnCategorySelectAll.indeterminate =
+    draftStatisticsColumns.length > 0 && !statisticsColumnCategorySelectAll.checked;
 }
 
 function applyStatisticsColumns() {
@@ -188,8 +194,16 @@ statisticsSettingsPanel.addEventListener('click', (event) => {
   if (event.target === statisticsSettingsPanel) closeStatisticsSettings();
 });
 statisticsColumnSearch.addEventListener('input', renderStatisticsColumnSettings);
-statisticsColumnSelectAll.addEventListener('change', () => {
-  draftStatisticsColumns = statisticsColumnSelectAll.checked ? [...statisticsColumnFields] : [];
+statisticsColumnCategorySelectAll.addEventListener('change', () => {
+  draftStatisticsColumns = statisticsColumnCategorySelectAll.checked ? [...statisticsColumnFields] : [];
+  renderStatisticsColumnSettings();
+});
+statisticsResetSelectedColumnsButton.addEventListener('click', () => {
+  const isDefaultConfiguration =
+    draftStatisticsColumns.length === statisticsColumnFields.length
+    && draftStatisticsColumns.every((field, index) => field === statisticsColumnFields[index]);
+  if (isDefaultConfiguration) return;
+  draftStatisticsColumns = [...statisticsColumnFields];
   renderStatisticsColumnSettings();
 });
 statisticsClearSelectedColumnsButton.addEventListener('click', () => {
