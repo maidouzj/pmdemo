@@ -265,19 +265,15 @@ function closeVideoSelectionFilter() {
 }
 
 function updateVideoSelectionFilter() {
-  const selectedCount = draftSelectedVideoIds.size;
-  const unselectedCount = videoOptions.length - selectedCount;
-  videoSelectionFilterPanel.querySelector('[data-video-selection-count="selected"]').textContent = String(selectedCount);
-  videoSelectionFilterPanel.querySelector('[data-video-selection-count="unselected"]').textContent = String(unselectedCount);
-  if (selectedVideoFilterStates.size === 0) videoSelectionFilterLabel.textContent = `全部素材（${videoOptions.length}）`;
-  else if (selectedVideoFilterStates.size === 2) videoSelectionFilterLabel.textContent = `已选、未选（${videoOptions.length}）`;
-  else if (selectedVideoFilterStates.has('selected')) videoSelectionFilterLabel.textContent = `已选（${selectedCount}）`;
-  else videoSelectionFilterLabel.textContent = `未选（${unselectedCount}）`;
+  if (selectedVideoFilterStates.has('selected')) videoSelectionFilterLabel.textContent = '已选';
+  else if (selectedVideoFilterStates.has('unselected')) videoSelectionFilterLabel.textContent = '未选';
+  else videoSelectionFilterLabel.textContent = '请选择勾选状态';
 }
 
 function renderSelectedVideoTags() {
   const selectedVideos = videoOptions.filter((video) => selectedVideoIds.has(video.id));
   openVideoSelector.textContent = selectedVideos.length ? `已选择 ${selectedVideos.length}个视频 >` : '请选择短视频';
+  openVideoSelector.classList.toggle('has-selection', selectedVideos.length > 0);
   selectedVideoTags.innerHTML = selectedVideos.map((video) => `<span><i class="selected-video-cover ${video.thumb}" data-preview-video="${video.id}" tabindex="0" aria-label="预览${video.name}封面"></i><em>${video.name}</em><button type="button" data-remove-selected-video="${video.id}" aria-label="移除${video.name}">×</button></span>`).join('');
 }
 
@@ -401,12 +397,16 @@ videoSelectionFilterPanel.addEventListener('click', (event) => {
   const option = event.target.closest('[data-video-selection-filter]');
   if (!option) return;
   const filterState = option.dataset.videoSelectionFilter;
-  if (selectedVideoFilterStates.has(filterState)) selectedVideoFilterStates.delete(filterState);
-  else selectedVideoFilterStates.add(filterState);
-  const isSelected = selectedVideoFilterStates.has(filterState);
-  option.classList.toggle('is-selected', isSelected);
-  option.setAttribute('aria-selected', String(isSelected));
+  const shouldClear = selectedVideoFilterStates.has(filterState);
+  selectedVideoFilterStates.clear();
+  if (!shouldClear) selectedVideoFilterStates.add(filterState);
+  videoSelectionFilterOptions.forEach((filterOption) => {
+    const isSelected = selectedVideoFilterStates.has(filterOption.dataset.videoSelectionFilter);
+    filterOption.classList.toggle('is-selected', isSelected);
+    filterOption.setAttribute('aria-selected', String(isSelected));
+  });
   renderVideoSelector();
+  closeVideoSelectionFilter();
 });
 
 document.addEventListener('click', (event) => {
