@@ -58,11 +58,6 @@ const videoSelectedCount = document.querySelector('#video-selected-count');
 const videoSelectedChips = document.querySelector('#video-selected-chips');
 const videoSelectorBody = document.querySelector('#video-selector-body');
 const videoSelectAll = document.querySelector('#video-select-all');
-const videoSelectionFilter = document.querySelector('#video-selection-filter');
-const videoSelectionFilterTrigger = document.querySelector('#video-selection-filter-trigger');
-const videoSelectionFilterLabel = document.querySelector('#video-selection-filter-label');
-const videoSelectionFilterPanel = document.querySelector('#video-selection-filter-panel');
-const videoSelectionFilterOptions = videoSelectionFilterPanel.querySelectorAll('[data-video-selection-filter]');
 const selectedVideoTags = document.querySelector('#selected-video-tags');
 const selectedVideoCoverPreview = document.querySelector('#selected-video-cover-preview');
 
@@ -73,7 +68,6 @@ let pendingAuthorCustomerValue = null;
 let authorCustomerConfirmed = false;
 const selectedVideoIds = new Set();
 let draftSelectedVideoIds = new Set();
-const selectedVideoFilterStates = new Set();
 const videoOptions = [
   { id: 'video-1', name: '润喉糖', description: '润喉清凉', cy: 'CY100004906767', tag: '13', value: '未投放', time: '2026-06-17 15:27:19', uploader: '高良测试', thumb: 'video-thumb-1' },
   { id: 'video-2', name: '榴莲 - 副本 (2)', description: '榴莲小店查看', cy: 'CY100004824029', tag: '--', value: '低效', time: '2026-06-08 18:13:34', uploader: '高良测试', thumb: 'video-thumb-2' },
@@ -252,24 +246,6 @@ shutdownStrategyTrigger.addEventListener('click', (event) => {
 
 shutdownStrategyOptions.addEventListener('change', renderShutdownStrategyTags);
 
-function getFilteredVideoOptions() {
-  if (selectedVideoFilterStates.size !== 1) return videoOptions;
-  if (selectedVideoFilterStates.has('selected')) return videoOptions.filter((video) => draftSelectedVideoIds.has(video.id));
-  if (selectedVideoFilterStates.has('unselected')) return videoOptions.filter((video) => !draftSelectedVideoIds.has(video.id));
-  return videoOptions;
-}
-
-function closeVideoSelectionFilter() {
-  videoSelectionFilterPanel.hidden = true;
-  videoSelectionFilterTrigger.setAttribute('aria-expanded', 'false');
-}
-
-function updateVideoSelectionFilter() {
-  if (selectedVideoFilterStates.has('selected')) videoSelectionFilterLabel.textContent = '已选';
-  else if (selectedVideoFilterStates.has('unselected')) videoSelectionFilterLabel.textContent = '未选';
-  else videoSelectionFilterLabel.textContent = '请选择勾选状态';
-}
-
 function renderSelectedVideoTags() {
   const selectedVideos = videoOptions.filter((video) => selectedVideoIds.has(video.id));
   openVideoSelector.textContent = selectedVideos.length ? `已选择 ${selectedVideos.length}个视频 >` : '请选择短视频';
@@ -298,9 +274,7 @@ function hideSelectedVideoCoverPreview() {
 }
 
 function renderVideoSelector() {
-  const filteredVideoOptions = getFilteredVideoOptions();
-  const selectedCount = draftSelectedVideoIds.size;
-  updateVideoSelectionFilter();
+  const filteredVideoOptions = videoOptions;
   videoSelectedCount.textContent = `已选${draftSelectedVideoIds.size}/50`;
   videoSelectedChips.innerHTML = [...draftSelectedVideoIds].map((videoId) => {
     const video = videoOptions.find((item) => item.id === videoId);
@@ -312,7 +286,7 @@ function renderVideoSelector() {
       <td><div class="video-name-cell"><i class="${video.thumb}"></i><span><strong>${video.name}</strong><em>${video.description}</em><small>${video.cy}</small></span></div></td>
       <td>${video.tag}</td><td>微信豆：　${video.value}<br>小店：　${video.value}<br>ADQ：　未投放</td><td>￥0.00</td><td>0%</td><td>0</td><td>${video.time}</td><td>${video.uploader}</td>
     </tr>
-  `).join('') : `<tr><td class="video-empty-state" colspan="9">${selectedVideoFilterStates.has('selected') ? '暂无已选素材' : selectedVideoFilterStates.has('unselected') ? '暂无未选素材，当前结果已全部选择' : '暂无符合条件的素材'}</td></tr>`;
+  `).join('') : '<tr><td class="video-empty-state" colspan="9">暂无符合条件的素材</td></tr>';
   const filteredSelectedCount = filteredVideoOptions.filter((video) => draftSelectedVideoIds.has(video.id)).length;
   videoSelectAll.checked = filteredVideoOptions.length > 0 && filteredSelectedCount === filteredVideoOptions.length;
   videoSelectAll.indeterminate = filteredSelectedCount > 0 && filteredSelectedCount < filteredVideoOptions.length;
@@ -338,12 +312,6 @@ openVideoSelector.addEventListener('click', () => {
     return;
   }
   draftSelectedVideoIds = new Set(selectedVideoIds);
-  selectedVideoFilterStates.clear();
-  videoSelectionFilterOptions.forEach((option) => {
-    option.classList.remove('is-selected');
-    option.setAttribute('aria-selected', 'false');
-  });
-  closeVideoSelectionFilter();
   renderVideoSelector();
   videoSelectorLayer.hidden = false;
 });
@@ -376,7 +344,7 @@ videoSelectedChips.addEventListener('click', (event) => {
 });
 
 videoSelectAll.addEventListener('change', () => {
-  const filteredVideoOptions = getFilteredVideoOptions();
+  const filteredVideoOptions = videoOptions;
   if (videoSelectAll.checked) {
     filteredVideoOptions.forEach((video) => {
       if (draftSelectedVideoIds.size < 50) draftSelectedVideoIds.add(video.id);
@@ -385,32 +353,6 @@ videoSelectAll.addEventListener('change', () => {
     filteredVideoOptions.forEach((video) => draftSelectedVideoIds.delete(video.id));
   }
   renderVideoSelector();
-});
-
-videoSelectionFilterTrigger.addEventListener('click', () => {
-  const nextOpen = videoSelectionFilterPanel.hidden;
-  videoSelectionFilterPanel.hidden = !nextOpen;
-  videoSelectionFilterTrigger.setAttribute('aria-expanded', String(nextOpen));
-});
-
-videoSelectionFilterPanel.addEventListener('click', (event) => {
-  const option = event.target.closest('[data-video-selection-filter]');
-  if (!option) return;
-  const filterState = option.dataset.videoSelectionFilter;
-  const shouldClear = selectedVideoFilterStates.has(filterState);
-  selectedVideoFilterStates.clear();
-  if (!shouldClear) selectedVideoFilterStates.add(filterState);
-  videoSelectionFilterOptions.forEach((filterOption) => {
-    const isSelected = selectedVideoFilterStates.has(filterOption.dataset.videoSelectionFilter);
-    filterOption.classList.toggle('is-selected', isSelected);
-    filterOption.setAttribute('aria-selected', String(isSelected));
-  });
-  renderVideoSelector();
-  closeVideoSelectionFilter();
-});
-
-document.addEventListener('click', (event) => {
-  if (!videoSelectionFilter.contains(event.target)) closeVideoSelectionFilter();
 });
 
 selectedVideoTags.addEventListener('click', (event) => {

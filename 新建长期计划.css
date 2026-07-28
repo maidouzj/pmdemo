@@ -531,17 +531,7 @@ button { cursor: pointer; }
 .video-filter-panel > div { display: flex; gap: 8px; margin-bottom: 10px; }
 .video-filter-panel > div:last-child { margin-bottom: 0; }
 .video-filter-panel button, .video-filter-panel input, .video-filter-panel select { width: 20%; height: 33px; padding: 0 12px; border: 1px solid #d7dce4; border-radius: 2px; color: #758195; background: #fff; text-align: left; }
-.video-filter-panel > div:first-child > button, .video-filter-panel > div:first-child > input, .video-selection-filter { width: calc((100% - 40px) / 6); }
-.video-selection-filter { position: relative; flex: 0 0 calc((100% - 40px) / 6); }
-.video-filter-panel .video-selection-filter > button { width: 100%; height: 33px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border: 1px solid #91b9ff; border-radius: 2px; color: #273244; background: #fff; cursor: pointer; font-weight: 500; }
-.video-filter-panel .video-selection-filter > button:hover, .video-filter-panel .video-selection-filter > button[aria-expanded="true"] { border-color: #1769ff; }
-.video-selection-filter-panel { position: absolute; z-index: 70; top: 37px; right: 0; left: 0; padding: 4px 0; border: 1px solid #b9c1cc; border-radius: 2px; background: #fff; box-shadow: 0 6px 16px rgba(31,45,61,.14); }
-.video-selection-filter-panel[hidden] { display: none; }
-.video-filter-panel .video-selection-filter-panel > button { width: 100%; height: 34px; display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 7px; padding: 0 10px; border: 0; color: #293548; background: #fff; cursor: pointer; }
-.video-filter-panel .video-selection-filter-panel > button:hover { background: #f3f7ff; }
-.video-selection-filter-panel button i { width: 14px; height: 14px; display: grid; place-items: center; border: 1px solid #c4cbd5; border-radius: 2px; color: transparent; font-size: 10px; font-style: normal; }
-.video-selection-filter-panel button.is-selected i { border-color: #1769ff; color: #fff; background: #1769ff; }
-.video-selection-filter-panel button.is-selected span { color: #1769ff; }
+.video-filter-panel > div:first-child > button, .video-filter-panel > div:first-child > input { width: calc((100% - 32px) / 5); }
 .video-filter-panel > div:last-child button:last-child { width: 62px; color: #273244; }
 .video-list-panel { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 16px 20px 0; border-radius: 6px; background: #fff; }
 .video-list-panel nav { display: flex; gap: 28px; min-height: 44px; }
