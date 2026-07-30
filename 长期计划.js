@@ -15,36 +15,159 @@ const financeReportPage = document.querySelector('#finance-report-page');
 const shortVideoStatisticsPage = document.querySelector('#short-video-statistics-page');
 const autoShutdownPage = document.querySelector('#auto-shutdown-page');
 const deliveryAccountPage = document.querySelector('#delivery-account-page');
-const dateTypeSelect = document.querySelector('#date-type-select');
-const dateTypeTrigger = document.querySelector('#date-type-trigger');
-const dateTypeLabel = document.querySelector('#date-type-label');
-const dateTypeOptions = document.querySelector('#date-type-options');
 const planStatusFilter = document.querySelector('#plan-status-filter');
 const longTermFilterReset = document.querySelector('#long-term-filter-reset');
+const longTermStatisticsPicker = document.querySelector('#long-term-statistics-picker');
+const longTermStatisticsTrigger = document.querySelector('#long-term-statistics-trigger');
+const longTermStatisticsPanel = document.querySelector('#long-term-statistics-panel');
+const longTermStatisticsStartLabel = document.querySelector('#long-term-statistics-start-label');
+const longTermStatisticsEndLabel = document.querySelector('#long-term-statistics-end-label');
+const longTermStatisticsStartInput = document.querySelector('#long-term-statistics-start-input');
+const longTermStatisticsEndInput = document.querySelector('#long-term-statistics-end-input');
+const longTermStatisticsCancel = document.querySelector('#long-term-statistics-cancel');
+const longTermStatisticsConfirm = document.querySelector('#long-term-statistics-confirm');
+const longTermStatisticsLeftMonth = document.querySelector('#long-term-statistics-left-month');
+const longTermStatisticsRightMonth = document.querySelector('#long-term-statistics-right-month');
+const longTermStatisticsLeftDays = document.querySelector('#long-term-statistics-left-days');
+const longTermStatisticsRightDays = document.querySelector('#long-term-statistics-right-days');
+const longTermListDateInputs = Array.from(document.querySelectorAll('.long-term-list-date-filter input'));
+let statisticsCalendarStartMonth = new Date(2026, 6, 1);
+let statisticsSelectionPhase = 'start';
 
-function closeDateTypeOptions() {
-  dateTypeOptions.hidden = true;
-  dateTypeTrigger.setAttribute('aria-expanded', 'false');
+function closeLongTermStatisticsPanel() {
+  longTermStatisticsPanel.hidden = true;
+  longTermStatisticsTrigger.setAttribute('aria-expanded', 'false');
 }
 
-dateTypeTrigger.addEventListener('click', () => {
-  const willOpen = dateTypeOptions.hidden;
-  dateTypeOptions.hidden = !willOpen;
-  dateTypeTrigger.setAttribute('aria-expanded', String(willOpen));
+function resetLongTermStatisticsDraft() {
+  longTermStatisticsStartInput.value = longTermStatisticsStartLabel.textContent.trim();
+  longTermStatisticsEndInput.value = longTermStatisticsEndLabel.textContent.trim();
+  statisticsCalendarStartMonth = new Date(`${longTermStatisticsStartInput.value}T00:00:00`);
+  statisticsCalendarStartMonth.setDate(1);
+  statisticsSelectionPhase = 'start';
+  renderLongTermStatisticsCalendars();
+}
+
+function formatStatisticsInputDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseStatisticsDate(value) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function renderStatisticsCalendarMonth(container, monthDate) {
+  const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+  const gridStart = new Date(monthStart);
+  gridStart.setDate(1 - monthStart.getDay());
+  const rangeStart = parseStatisticsDate(longTermStatisticsStartInput.value);
+  const rangeEnd = parseStatisticsDate(longTermStatisticsEndInput.value);
+  container.innerHTML = Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart);
+    date.setDate(gridStart.getDate() + index);
+    const dateValue = formatStatisticsInputDate(date);
+    const isCurrentMonth = date.getMonth() === monthDate.getMonth();
+    const isStart = isCurrentMonth && dateValue === longTermStatisticsStartInput.value;
+    const isEnd = isCurrentMonth && dateValue === longTermStatisticsEndInput.value;
+    const isInRange = isCurrentMonth && date >= rangeStart && date <= rangeEnd;
+    return `<button type="button" data-statistics-date="${dateValue}" class="${isCurrentMonth ? '' : 'is-outside'}${isInRange ? ' is-in-range' : ''}${isStart ? ' is-range-start' : ''}${isEnd ? ' is-range-end' : ''}">${date.getDate()}</button>`;
+  }).join('');
+}
+
+function renderLongTermStatisticsCalendars() {
+  const rightMonth = new Date(statisticsCalendarStartMonth.getFullYear(), statisticsCalendarStartMonth.getMonth() + 1, 1);
+  longTermStatisticsLeftMonth.textContent = `${statisticsCalendarStartMonth.getFullYear()} - ${String(statisticsCalendarStartMonth.getMonth() + 1).padStart(2, '0')}`;
+  longTermStatisticsRightMonth.textContent = `${rightMonth.getFullYear()} - ${String(rightMonth.getMonth() + 1).padStart(2, '0')}`;
+  renderStatisticsCalendarMonth(longTermStatisticsLeftDays, statisticsCalendarStartMonth);
+  renderStatisticsCalendarMonth(longTermStatisticsRightDays, rightMonth);
+}
+
+longTermStatisticsTrigger.addEventListener('click', () => {
+  const willOpen = longTermStatisticsPanel.hidden;
+  if (willOpen) resetLongTermStatisticsDraft();
+  longTermStatisticsPanel.hidden = !willOpen;
+  longTermStatisticsTrigger.setAttribute('aria-expanded', String(willOpen));
 });
 
-dateTypeOptions.addEventListener('click', (event) => {
-  const option = event.target.closest('[data-date-type]');
-  if (!option) return;
-  dateTypeLabel.textContent = option.dataset.dateType;
-  dateTypeOptions.querySelectorAll('[data-date-type]').forEach((item) => {
-    item.setAttribute('aria-selected', String(item === option));
-  });
-  closeDateTypeOptions();
+longTermStatisticsPanel.addEventListener('click', (event) => {
+  const shortcut = event.target.closest('[data-statistics-range]');
+  if (shortcut) {
+    const endDate = new Date(2026, 6, 30);
+    const startDate = new Date(endDate);
+    if (shortcut.dataset.statisticsRange === 'yesterday') {
+      startDate.setDate(startDate.getDate() - 1);
+      endDate.setDate(endDate.getDate() - 1);
+    } else if (shortcut.dataset.statisticsRange === 'last7') {
+      startDate.setDate(startDate.getDate() - 6);
+    } else if (shortcut.dataset.statisticsRange === 'last30') {
+      startDate.setDate(startDate.getDate() - 29);
+    } else if (shortcut.dataset.statisticsRange === 'thisMonth') {
+      startDate.setDate(1);
+    } else if (shortcut.dataset.statisticsRange === 'last7WithoutToday') {
+      endDate.setDate(endDate.getDate() - 1);
+      startDate.setDate(endDate.getDate() - 6);
+    } else if (shortcut.dataset.statisticsRange === 'last30WithoutToday') {
+      endDate.setDate(endDate.getDate() - 1);
+      startDate.setDate(endDate.getDate() - 29);
+    }
+    longTermStatisticsStartInput.value = formatStatisticsInputDate(startDate);
+    longTermStatisticsEndInput.value = formatStatisticsInputDate(endDate);
+    statisticsCalendarStartMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    statisticsSelectionPhase = 'start';
+    renderLongTermStatisticsCalendars();
+    return;
+  }
+
+  const monthButton = event.target.closest('[data-statistics-month]');
+  if (monthButton) {
+    const monthAction = monthButton.dataset.statisticsMonth;
+    const monthOffset = monthAction === 'previous' ? -1 : monthAction === 'next' ? 1 : monthAction === 'previousYear' ? -12 : 12;
+    statisticsCalendarStartMonth = new Date(statisticsCalendarStartMonth.getFullYear(), statisticsCalendarStartMonth.getMonth() + monthOffset, 1);
+    renderLongTermStatisticsCalendars();
+    return;
+  }
+
+  const dateButton = event.target.closest('[data-statistics-date]');
+  if (!dateButton) return;
+  const selectedDate = dateButton.dataset.statisticsDate;
+  if (statisticsSelectionPhase === 'start') {
+    longTermStatisticsStartInput.value = selectedDate;
+    longTermStatisticsEndInput.value = selectedDate;
+    statisticsSelectionPhase = 'end';
+  } else {
+    if (selectedDate < longTermStatisticsStartInput.value) {
+      longTermStatisticsEndInput.value = longTermStatisticsStartInput.value;
+      longTermStatisticsStartInput.value = selectedDate;
+    } else {
+      longTermStatisticsEndInput.value = selectedDate;
+    }
+    statisticsSelectionPhase = 'start';
+  }
+  renderLongTermStatisticsCalendars();
+});
+
+longTermStatisticsCancel.addEventListener('click', () => {
+  resetLongTermStatisticsDraft();
+  closeLongTermStatisticsPanel();
+});
+
+longTermStatisticsConfirm.addEventListener('click', () => {
+  if (!longTermStatisticsStartInput.value || !longTermStatisticsEndInput.value) return;
+  if (longTermStatisticsStartInput.value > longTermStatisticsEndInput.value) {
+    longTermStatisticsEndInput.value = longTermStatisticsStartInput.value;
+  }
+  longTermStatisticsStartLabel.textContent = longTermStatisticsStartInput.value;
+  longTermStatisticsEndLabel.textContent = longTermStatisticsEndInput.value;
+  closeLongTermStatisticsPanel();
+  renderTable();
 });
 
 document.addEventListener('click', (event) => {
-  if (!dateTypeSelect.contains(event.target)) closeDateTypeOptions();
+  if (!longTermStatisticsPicker.contains(event.target)) closeLongTermStatisticsPanel();
 });
 
 groups.forEach((group) => {
@@ -110,7 +233,7 @@ const statisticsOrderTypeLabel = document.querySelector('#statistics-order-type-
 const statisticsOrderTypePanel = document.querySelector('#statistics-order-type-panel');
 const statisticsOrderTypeOptions = statisticsOrderTypePanel.querySelectorAll('[data-statistics-order-type]');
 const statisticsResetButton = document.querySelector('#statistics-reset');
-const selectedStatisticsOrderTypes = new Set();
+let selectedStatisticsOrderType = '';
 const statisticsColumnFields = Array.from(document.querySelectorAll('#delivery-statistics-page .statistics-table thead th'))
   .map((cell) => cell.textContent.replace('?', '').trim());
 let savedStatisticsColumns = [...statisticsColumnFields];
@@ -260,9 +383,8 @@ statisticsRefreshButton.addEventListener('click', () => {
 });
 
 function updateStatisticsOrderTypeLabel() {
-  const selectedTypes = [...selectedStatisticsOrderTypes];
-  statisticsOrderTypeLabel.textContent = selectedTypes.length ? selectedTypes.join('、') : '选择计划类型';
-  statisticsOrderTypeTrigger.classList.toggle('has-value', selectedTypes.length > 0);
+  statisticsOrderTypeLabel.textContent = selectedStatisticsOrderType || '选择计划类型';
+  statisticsOrderTypeTrigger.classList.toggle('has-value', Boolean(selectedStatisticsOrderType));
 }
 
 function closeStatisticsOrderTypeFilter() {
@@ -272,7 +394,7 @@ function closeStatisticsOrderTypeFilter() {
 
 function renderStatisticsRows() {
   document.querySelectorAll('#delivery-statistics-page .statistics-table tbody tr').forEach((row) => {
-    row.hidden = selectedStatisticsOrderTypes.size > 0 && !selectedStatisticsOrderTypes.has(row.dataset.orderType);
+    row.hidden = Boolean(selectedStatisticsOrderType) && row.dataset.orderType !== selectedStatisticsOrderType;
   });
 }
 
@@ -286,20 +408,22 @@ statisticsOrderTypePanel.addEventListener('click', (event) => {
   const option = event.target.closest('[data-statistics-order-type]');
   if (!option) return;
   const planType = option.dataset.statisticsOrderType;
-  if (selectedStatisticsOrderTypes.has(planType)) selectedStatisticsOrderTypes.delete(planType);
-  else selectedStatisticsOrderTypes.add(planType);
-  const isSelected = selectedStatisticsOrderTypes.has(planType);
-  option.classList.toggle('is-selected', isSelected);
-  option.setAttribute('aria-selected', String(isSelected));
+  selectedStatisticsOrderType = selectedStatisticsOrderType === planType ? '' : planType;
+  statisticsOrderTypeOptions.forEach((candidate) => {
+    const isSelected = candidate.dataset.statisticsOrderType === selectedStatisticsOrderType;
+    candidate.classList.toggle('is-selected', isSelected);
+    candidate.setAttribute('aria-pressed', String(isSelected));
+  });
   updateStatisticsOrderTypeLabel();
+  closeStatisticsOrderTypeFilter();
   renderStatisticsRows();
 });
 
 statisticsResetButton.addEventListener('click', () => {
-  selectedStatisticsOrderTypes.clear();
+  selectedStatisticsOrderType = '';
   statisticsOrderTypeOptions.forEach((option) => {
     option.classList.remove('is-selected');
-    option.setAttribute('aria-selected', 'false');
+    option.setAttribute('aria-pressed', 'false');
   });
   updateStatisticsOrderTypeLabel();
   closeStatisticsOrderTypeFilter();
@@ -340,48 +464,172 @@ const mainTrendTabs = Array.from(document.querySelectorAll('[data-trend-mode]'))
 const mainTrendChart = document.querySelector('#main-trend-chart');
 const mainTrendSvg = document.querySelector('#main-trend-svg');
 const mainTrendTooltip = document.querySelector('#main-trend-tooltip');
-const mainTrendData = {
-  day: [
-    { time: '2026-07-09', spend: 0, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-10', spend: 35.8, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-11', spend: 83.2, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-12', spend: 126.5, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-13', spend: 187.56, orders: 0, amount: 0, roi: 0 }
-  ],
-  hour: [
-    { time: '2026-07-13 00:00', spend: 0, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-13 06:00', spend: 35.8, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-13 12:00', spend: 83.2, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-13 18:00', spend: 126.5, orders: 0, amount: 0, roi: 0 },
-    { time: '2026-07-13 23:00', spend: 187.56, orders: 0, amount: 0, roi: 0 }
-  ]
-};
+const mainTrendDateValues = [longTermStatisticsStartLabel, longTermStatisticsEndLabel];
 const mainTrendSeries = [
-  { key: 'spend', label: '消耗金额', className: 'consume', format: (value) => `¥${value.toFixed(2)}` },
-  { key: 'orders', label: '总成交订单数', className: 'order', format: (value) => String(value) },
-  { key: 'amount', label: '总成交订单金额', className: 'amount', format: (value) => `¥${value.toFixed(2)}` },
-  { key: 'roi', label: '成交ROI', className: 'roi', format: (value) => value.toFixed(2) }
+  { key: 'spend', label: '总消耗金额', className: 'consume', color: '#2e73ff', axis: 'left', format: (value) => value.toFixed(2).replace(/\.00$/, '') },
+  { key: 'orders', label: '总成交订单数', className: 'order', color: '#ff8b28', axis: 'left', format: (value) => String(value) },
+  { key: 'amount', label: '总成交金额', className: 'amount', color: '#42bd7b', axis: 'left', format: (value) => value.toFixed(2).replace(/\.00$/, '') },
+  { key: 'roi', label: '总成交ROI', className: 'roi', color: '#ff5b62', axis: 'right', format: (value) => value.toFixed(2).replace(/\.00$/, '') }
 ];
-let mainTrendMode = 'hour';
+let mainTrendMode = 'day';
 let mainTrendPoints = [];
+let mainTrendViewWidth = 1000;
+
+function parseMainTrendDate(dateText) {
+  return new Date(`${dateText.slice(0, 10)}T00:00:00`);
+}
+
+function formatMainTrendDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getMainTrendDateRange() {
+  const startText = mainTrendDateValues[0]?.textContent.trim() || '2026-07-13 00:00:00';
+  const endText = mainTrendDateValues[1]?.textContent.trim() || startText;
+  const startDate = parseMainTrendDate(startText);
+  const endDate = parseMainTrendDate(endText);
+  return startDate <= endDate ? { startDate, endDate } : { startDate: endDate, endDate: startDate };
+}
+
+function getMainTrendDays() {
+  const { startDate, endDate } = getMainTrendDateRange();
+  const days = [];
+  const current = new Date(startDate);
+  while (current <= endDate && days.length < 60) {
+    days.push(formatMainTrendDate(current));
+    current.setDate(current.getDate() + 1);
+  }
+  return days;
+}
+
+function buildMainTrendDayData() {
+  return getMainTrendDays().map((date, index, rows) => {
+    if (rows.length === 1) {
+      return { time: date, spend: 42.80, orders: 8, amount: 38.20, roi: 0.89 };
+    }
+    const progress = rows.length === 1 ? 1 : index / (rows.length - 1);
+    const peak = Math.max(0, 1 - Math.abs(progress - 0.72) * 9);
+    const baseline = 8 + Math.sin(index * 0.9) * 3;
+    const spend = Number((baseline + peak * 207).toFixed(2));
+    const orders = Math.max(1, Math.round(1 + peak * 7));
+    const amount = Number((baseline * 0.8 + peak * 179).toFixed(2));
+    return { time: date, spend, orders, amount, roi: spend ? Number((amount / spend).toFixed(2)) : 0 };
+  });
+}
+
+function buildMainTrendHourData() {
+  const days = getMainTrendDays();
+  const focusDayIndex = Math.max(0, Math.min(days.length - 1, Math.floor(days.length * 0.72)));
+  const firstPeakIndex = focusDayIndex * 24 + 12;
+  const secondPeakIndex = focusDayIndex * 24 + 48;
+  return days.flatMap((date, dayIndex) => Array.from({ length: 24 }, (_, hour) => {
+    const currentIndex = dayIndex * 24 + hour;
+    const firstPeak = Math.exp(-Math.pow(currentIndex - firstPeakIndex, 2) / 60);
+    const secondPeak = Math.exp(-Math.pow(currentIndex - secondPeakIndex, 2) / 60);
+    const intensity = Math.min(1, firstPeak + secondPeak);
+    const visibleIntensity = intensity < 0.01 ? 0 : intensity;
+    const spend = Number((visibleIntensity * 30.8).toFixed(2));
+    const orders = Math.round(visibleIntensity * 2);
+    const amount = Number((visibleIntensity * 26).toFixed(2));
+    return {
+      time: `${date} ${String(hour).padStart(2, '0')}:00`,
+      spend,
+      orders,
+      amount,
+      roi: spend ? Number((amount / spend).toFixed(2)) : 0
+    };
+  }));
+}
+
+function getMainTrendRows() {
+  return mainTrendMode === 'day' ? buildMainTrendDayData() : buildMainTrendHourData();
+}
+
+function getMainTrendScale(rows) {
+  const leftSeries = mainTrendSeries.filter((series) => series.axis === 'left');
+  const leftMaximum = Math.max(1, ...rows.flatMap((row) => leftSeries.map((series) => Number(row[series.key]) || 0)));
+  const roiMaximum = Math.max(1, ...rows.map((row) => Number(row.roi) || 0));
+  return {
+    leftMaximum: Math.ceil(leftMaximum / 50) * 50,
+    roiMaximum: Math.ceil(roiMaximum * 10) / 10
+  };
+}
+
+function formatMainTrendHoverTime(time) {
+  if (mainTrendMode === 'day') return time;
+  const [date, hourText] = time.split(' ');
+  const startHour = Number(hourText.slice(0, 2));
+  const endHour = (startHour + 1) % 24;
+  return `${date} ${startHour}:00~${endHour}:00`;
+}
+
+function formatMainTrendAxisTime(time, index, total) {
+  if (mainTrendMode === 'day') return time.slice(5);
+  const [date, hourText] = time.split(' ');
+  const hour = Number(hourText.slice(0, 2));
+  return index === 0 || index === total - 1 ? `${date.slice(5).replace('-', '/')} ${hour}:00` : `${hour}:00`;
+}
+
+function getMainTrendLabelIndexes(total, plotWidth) {
+  if (total <= 1) return new Set([0]);
+  if (mainTrendMode === 'day') {
+    const labelCount = Math.max(2, Math.min(30, total, Math.floor(plotWidth / 48)));
+    return new Set(Array.from({ length: labelCount }, (_, index) => Math.round(index * (total - 1) / (labelCount - 1))));
+  }
+  if (total <= 24) {
+    return new Set(Array.from({ length: Math.ceil(total / 2) }, (_, index) => index * 2).filter((index) => index < total));
+  }
+  const labelCount = Math.max(2, Math.min(12, Math.floor(plotWidth / 110)));
+  return new Set(Array.from({ length: labelCount }, (_, index) => Math.round(index * (total - 1) / (labelCount - 1))));
+}
+
+function buildMainTrendCurve(points) {
+  if (points.length < 2) return points.length ? `M ${points[0][0]} ${points[0][1]}` : '';
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M ${point[0]} ${point[1]}`;
+    const previous = points[index - 1];
+    const controlX = (previous[0] + point[0]) / 2;
+    return `${path} C ${controlX} ${previous[1]}, ${controlX} ${point[1]}, ${point[0]} ${point[1]}`;
+  }, '');
+}
 
 function renderMainTrend() {
-  const rows = mainTrendData[mainTrendMode];
-  const left = 30;
-  const right = 970;
-  const top = 16;
-  const bottom = 170;
-  const maxValue = Math.max(1, ...rows.flatMap((row) => mainTrendSeries.map((series) => Number(row[series.key]) || 0)));
+  const rows = getMainTrendRows();
+  mainTrendViewWidth = Math.max(720, Math.round(mainTrendChart.clientWidth || 1000));
+  mainTrendSvg.setAttribute('viewBox', `0 0 ${mainTrendViewWidth} 240`);
+  const left = 44;
+  const right = mainTrendViewWidth - 44;
+  const top = 14;
+  const bottom = 198;
+  const { leftMaximum, roiMaximum } = getMainTrendScale(rows);
   mainTrendPoints = rows.map((row, index) => ({
     row,
     x: left + ((right - left) * index / Math.max(1, rows.length - 1))
   }));
-  const seriesMarkup = mainTrendSeries.map((series) => {
-    const points = mainTrendPoints.map(({ row, x }) => `${x},${bottom - ((Number(row[series.key]) || 0) / maxValue) * (bottom - top)}`).join(' ');
-    return `<polyline class="trend-series trend-series-${series.className}" points="${points}"></polyline>`;
+  const gridMarkup = Array.from({ length: 6 }, (_, index) => {
+    const ratio = index / 5;
+    const y = bottom - ratio * (bottom - top);
+    const leftValue = Math.round(leftMaximum * ratio);
+    const rightValue = (roiMaximum * ratio).toFixed(1).replace(/\.0$/, '');
+    return `<line class="trend-grid-line" x1="${left}" y1="${y}" x2="${right}" y2="${y}"></line>
+      <text class="trend-y-label trend-y-label-left" x="${left - 8}" y="${y + 4}">${leftValue}</text>
+      <text class="trend-y-label trend-y-label-right" x="${right + 8}" y="${y + 4}">${rightValue}</text>`;
   }).join('');
-  const labels = mainTrendPoints.map(({ row, x }) => `<text class="trend-axis-label" x="${x}" y="198">${mainTrendMode === 'day' ? row.time.slice(5) : row.time.slice(11)}</text>`).join('');
-  mainTrendSvg.innerHTML = `${seriesMarkup}${labels}<g id="main-trend-hover" visibility="hidden"><line class="trend-hover-line" x1="0" y1="${top}" x2="0" y2="${bottom}"></line>${mainTrendSeries.map((series) => `<circle class="trend-hover-point trend-series-${series.className}" cx="0" cy="0" r="4"></circle>`).join('')}</g>`;
+  const seriesMarkup = mainTrendSeries.map((series) => {
+    const maximum = series.axis === 'right' ? roiMaximum : leftMaximum;
+    const points = mainTrendPoints.map(({ row, x }) => [x, bottom - ((Number(row[series.key]) || 0) / maximum) * (bottom - top)]);
+    const singlePoint = points.length === 1 ? `<circle class="trend-static-point trend-series-${series.className}" cx="${points[0][0]}" cy="${points[0][1]}" r="3"></circle>` : '';
+    return `<path class="trend-series trend-series-${series.className}" d="${buildMainTrendCurve(points)}"></path>${singlePoint}`;
+  }).join('');
+  const labelIndexes = getMainTrendLabelIndexes(mainTrendPoints.length, right - left);
+  const labels = mainTrendPoints.map(({ row, x }, index) => {
+    const showLabel = labelIndexes.has(index);
+    return showLabel ? `<text class="trend-axis-label" x="${x}" y="225">${formatMainTrendAxisTime(row.time, index, mainTrendPoints.length)}</text>` : '';
+  }).join('');
+  mainTrendSvg.innerHTML = `${gridMarkup}${seriesMarkup}${labels}<g id="main-trend-hover" visibility="hidden"><line class="trend-hover-line" x1="0" y1="${top}" x2="0" y2="${bottom}"></line>${mainTrendSeries.map((series) => `<circle class="trend-hover-point trend-series-${series.className}" cx="0" cy="0" r="4"></circle>`).join('')}</g>`;
   mainTrendTooltip.hidden = true;
 }
 
@@ -397,19 +645,20 @@ mainTrendTabs.forEach((button) => button.addEventListener('click', () => {
 
 mainTrendChart.addEventListener('mousemove', (event) => {
   const bounds = mainTrendChart.getBoundingClientRect();
-  const viewX = (event.clientX - bounds.left) / bounds.width * 1000;
+  const viewX = (event.clientX - bounds.left) / bounds.width * mainTrendViewWidth;
   const nearest = mainTrendPoints.reduce((best, point, index) => Math.abs(point.x - viewX) < Math.abs(best.point.x - viewX) ? { point, index } : best, { point: mainTrendPoints[0], index: 0 });
   const hoverGroup = mainTrendSvg.querySelector('#main-trend-hover');
   hoverGroup.setAttribute('visibility', 'visible');
-  const maxValue = Math.max(1, ...mainTrendPoints.flatMap(({ row }) => mainTrendSeries.map((series) => Number(row[series.key]) || 0)));
+  const { leftMaximum, roiMaximum } = getMainTrendScale(mainTrendPoints.map(({ row }) => row));
   hoverGroup.querySelector('line').setAttribute('x1', nearest.point.x);
   hoverGroup.querySelector('line').setAttribute('x2', nearest.point.x);
   hoverGroup.querySelectorAll('circle').forEach((circle, index) => {
     const series = mainTrendSeries[index];
+    const maximum = series.axis === 'right' ? roiMaximum : leftMaximum;
     circle.setAttribute('cx', nearest.point.x);
-    circle.setAttribute('cy', 170 - ((Number(nearest.point.row[series.key]) || 0) / maxValue) * 154);
+    circle.setAttribute('cy', 198 - ((Number(nearest.point.row[series.key]) || 0) / maximum) * 184);
   });
-  mainTrendTooltip.innerHTML = `<strong>${nearest.point.row.time}</strong>${mainTrendSeries.map((series) => `<span>${series.label}：${series.format(nearest.point.row[series.key])}</span>`).join('')}`;
+  mainTrendTooltip.innerHTML = `<strong>${formatMainTrendHoverTime(nearest.point.row.time)}</strong>${mainTrendSeries.map((series) => `<span style="--tooltip-color:${series.color}">${series.label}：${series.format(nearest.point.row[series.key])}</span>`).join('')}`;
   mainTrendTooltip.hidden = false;
   const tooltipLeft = Math.min(Math.max(8, event.clientX - bounds.left + 14), bounds.width - mainTrendTooltip.offsetWidth - 8);
   const tooltipTop = Math.min(Math.max(8, event.clientY - bounds.top - 12), bounds.height - mainTrendTooltip.offsetHeight - 8);
@@ -425,17 +674,27 @@ mainTrendChart.addEventListener('mouseleave', () => {
 
 renderMainTrend();
 
+if (mainTrendDateValues.length === 2) {
+  const mainTrendDateObserver = new MutationObserver(() => renderMainTrend());
+  mainTrendDateValues.forEach((item) => mainTrendDateObserver.observe(item, { childList: true, characterData: true, subtree: true }));
+}
+
+if ('ResizeObserver' in window) {
+  const mainTrendResizeObserver = new ResizeObserver(() => renderMainTrend());
+  mainTrendResizeObserver.observe(mainTrendChart);
+}
+
 const columnGroups = [
   {
     name: '投放参数',
     fields: [
-      '投放号', '每日消耗预算', '优先提升目标', '加热方式', '出价/目标ROI', '加热素材',
+      '投放号', '每日预算', '优先提升目标', '加热方式', '出价/目标ROI', '加热素材',
       '计划分组', '数据更新时间', '计划终止时间', '创建时间', '计划加热时长'
     ]
   },
   {
     name: '投放消耗',
-    fields: ['投放金额/消耗进度', '总消耗金额', '今日消耗']
+    fields: ['今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额/进度']
   },
   {
     name: '互动效果',
@@ -450,8 +709,8 @@ const columnGroups = [
       '总成交ROI', '总成交金额', '总成交订单数', '总曝光人数', '商品点击次数', '商品点击率',
       '点击成交率', '千展费用', '点击成本', '转化成本', '进入成本', '商品点击人数',
       '当场下单订单数', '当场下单 ROI', '下单人数', '成交人数', '利润', '进入率',
-      '直播间曝光人数', '短视频曝光总人数', '总进入人数', '进入直播间人数',
-      '短视频进入人数', 'GPM', '下单成本', '直播间观看人次', '短视频观看人次'
+      '直播间曝光人数', '短视频曝光总人数', '总进入人数', '进入直播间观看人数',
+      '短视频进入人数', 'GPM', '下单成本', '进入直播间观看人次', '短视频观看人次'
     ]
   },
   {
@@ -462,40 +721,53 @@ const columnGroups = [
 
 // 列表和字段定义弹窗统一采用已确认的长期计划最终字段顺序。
 const businessColumns = [
-  '投放号', '投放金额/消耗进度', '每日消耗预算', '优先提升目标', '加热方式', '出价/目标ROI', '加热素材', '计划分组',
-  '数据更新时间', '计划终止时间', '创建时间', '计划加热时长', '总消耗金额', '今日消耗',
+  '投放号', '每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额/进度',
+  '优先提升目标', '加热方式', '出价/目标ROI', '加热素材', '计划分组',
+  '数据更新时间', '计划终止时间', '创建时间', '计划加热时长',
   '短视频评论次数', '总评论次数', '新增关注数', '总点赞次数', '直播间点赞次数', '短视频点赞次数',
   '直播间新增粉丝数', '短视频新增粉丝数', '直播间评论次数', '总成交ROI', '总成交金额', '总成交订单数',
   '总曝光人数', '商品点击次数', '商品点击率', '点击成交率', '千展费用', '点击成本', '转化成本', '进入成本',
   '商品点击人数', '当场下单订单数', '当场下单 ROI', '下单人数', '成交人数', '利润', '进入率', '直播间曝光人数',
-  '短视频曝光总人数', '总进入人数', '进入直播间人数', '短视频进入人数', 'GPM', '下单成本', '直播间观看人次', '短视频观看人次'
+  '短视频曝光总人数', '总进入人数', '进入直播间观看人数', '短视频进入人数', 'GPM', '下单成本', '进入直播间观看人次', '短视频观看人次'
 ];
 
 const planRows = [
-  { name: '测试支付码', id: '1783612800_1096390', targetAccount: 'tel小小店非正式账号', amount: '2000', todaySpend: '126.50', endTime: '2026-07-14 09:44:52', createdTime: '2026-07-13 17:49:14', deliveryState: 'unauthorized' },
-  { name: '产品测试，花光所有的豆...', id: '1783526400_1862699', targetAccount: 'tel小小店非正式账号', amount: '1000', todaySpend: '83.20', endTime: '2026-07-13 17:24:55', createdTime: '2026-07-13 17:05:29', deliveryState: 'pending' },
-  { name: '产品测试，花光所有的豆...', id: '1783440000_1765763', targetAccount: 'tel小小店非正式账号', amount: '1000', todaySpend: '0', endTime: '2026-07-13 17:04:18', createdTime: '2026-07-13 17:02:37', deliveryState: 'active' },
-  { name: '[7.6复投]主力计划0703-6...', id: '1783440000_1703702', targetAccount: 'tel小小店非正式账号', amount: '200', todaySpend: '35.80', endTime: '2026-07-13 16:45:32', createdTime: '2026-07-13 16:40:18', deliveryState: 'active' },
-  { name: '202607071859微信豆计...', id: '1783353600_1680459', targetAccount: 'tel小小店非正式账号', amount: '2000', todaySpend: '210.00', endTime: '2026-07-13 16:18:46', createdTime: '2026-07-13 16:12:09', deliveryState: 'active' }
+  { name: '测试支付码', id: '1783612800_1096390', targetAccount: 'tel小小店非正式账号', dailyBudget: 2000, todaySpend: 126.50, averageDailySpend: 118.60, totalSpend: 1654.80, planDays: 30, endTime: '2026-07-14 09:44:52', createdTime: '2026-07-13 17:49:14', deliveryState: 'unauthorized' },
+  { name: '产品测试，花光所有的豆...', id: '1783526400_1862699', targetAccount: 'tel小小店非正式账号', dailyBudget: 1000, todaySpend: 83.20, averageDailySpend: 91.40, totalSpend: 1289.60, planDays: 30, endTime: '2026-07-13 17:24:55', createdTime: '2026-07-13 17:05:29', deliveryState: 'pending' },
+  { name: '产品测试，花光所有的豆...', id: '1783440000_1765763', targetAccount: 'tel小小店非正式账号', dailyBudget: 1000, todaySpend: 0, averageDailySpend: 76.80, totalSpend: 986.30, planDays: 21, endTime: '2026-07-13 17:04:18', createdTime: '2026-07-13 17:02:37', deliveryState: 'active' },
+  { name: '[7.6复投]主力计划0703-6...', id: '1783440000_1703702', targetAccount: 'tel小小店非正式账号', dailyBudget: 200, todaySpend: 35.80, averageDailySpend: 31.20, totalSpend: 486.50, planDays: 30, endTime: '2026-07-13 16:45:32', createdTime: '2026-07-13 16:40:18', deliveryState: 'paused' },
+  { name: '202607071859微信豆计...', id: '1783353600_1680459', targetAccount: 'tel小小店非正式账号', dailyBudget: 2000, todaySpend: 210.00, averageDailySpend: 198.40, totalSpend: 3268.90, planDays: 30, endTime: '2026-07-13 16:18:46', createdTime: '2026-07-13 16:12:09', deliveryState: 'closed' },
+  { name: '审核中计划示例', id: '1783267200_1679128', targetAccount: 'tel小小店非正式账号', dailyBudget: 500, todaySpend: 0, averageDailySpend: 0, totalSpend: 0, planDays: 14, endTime: '2026-07-13 15:58:20', createdTime: '2026-07-13 15:52:11', deliveryState: 'reviewing' },
+  { name: '结算中计划示例', id: '1783180800_1668042', targetAccount: 'tel小小店非正式账号', dailyBudget: 800, todaySpend: 68.40, averageDailySpend: 72.10, totalSpend: 895.70, planDays: 21, endTime: '2026-07-13 15:26:44', createdTime: '2026-07-13 15:20:06', deliveryState: 'settling' },
+  { name: '已取消计划示例', id: '1783094400_1657391', targetAccount: 'tel小小店非正式账号', dailyBudget: 300, todaySpend: 0, averageDailySpend: 18.20, totalSpend: 236.40, planDays: 14, endTime: '2026-07-13 14:48:31', createdTime: '2026-07-13 14:42:17', deliveryState: 'canceled' }
 ];
 
 const percentFields = new Set(['商品点击率', '点击成交率', '进入率']);
 const amountFields = new Set([
-  '每日消耗预算', '总消耗金额', '今日消耗', '总成交金额', '千展费用',
+  '每日预算', '总成交金额', '千展费用',
   '点击成本', '转化成本', '进入成本', '利润', 'GPM', '下单成本'
 ]);
 const numberFields = new Set([
-  '每日消耗预算', '总消耗金额', '今日消耗', '总成交ROI', '总成交金额', '总成交订单数', '总曝光人数', '总评论次数', '短视频评论次数', '新增关注数',
+  '每日预算', '总成交ROI', '总成交金额', '总成交订单数', '总曝光人数', '总评论次数', '短视频评论次数', '新增关注数',
   '商品点击次数', '千展费用', '点击成本', '转化成本', '进入成本', '商品点击人数', '当场下单订单数', '当场下单 ROI',
   '下单人数', '成交人数', '利润', '直播间曝光人数', '短视频曝光总人数', '总点赞次数', '直播间点赞次数',
   '短视频点赞次数', '直播间新增粉丝数', '短视频新增粉丝数', '直播间评论次数', '总进入人数',
-  '进入直播间人数', '短视频进入人数', 'GPM', '下单成本', '直播间观看人次', '短视频观看人次'
+  '进入直播间观看人数', '短视频进入人数', 'GPM', '下单成本', '进入直播间观看人次', '短视频观看人次'
 ]);
 
 let selectedColumnOrder = [...businessColumns];
 let draftColumnOrder = [...businessColumns];
+const sortablePlanFields = new Set(['每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额/进度']);
+const planFieldTooltips = {
+  '今日消耗金额/进度': '今日自然日产生的消耗；进度＝今日消耗金额÷每日预算。',
+  '周期内消耗金额/进度': '顶部“统计时间”范围内产生的消耗；进度＝周期内消耗金额÷周期内应投预算。',
+  '总消耗金额/进度': '计划开始加热至当前的累计消耗；进度＝总消耗金额÷计划总预算。'
+};
+let activePlanSortField = '';
+let activePlanSortDirection = 'desc';
 const tableHead = document.querySelector('#plan-table-head');
 const tableBody = document.querySelector('#plan-table-body');
+const planFieldTooltip = document.querySelector('#plan-field-tooltip');
 const batchActions = document.querySelector('#batch-actions');
 const settingsButton = document.querySelector('#column-settings-button');
 const settingsPanel = document.querySelector('#column-settings-panel');
@@ -523,8 +795,7 @@ let activeColumnGroup = columnGroups[0].name;
 let pendingStatusChange = null;
 
 function getFieldValue(field, row) {
-  if (field === '每日消耗预算') return '100.00';
-  if (field === '今日消耗') return Number(row.todaySpend).toFixed(2);
+  if (field === '每日预算') return `￥${Number(row.dailyBudget).toFixed(2)}`;
   if (field === '优先提升目标') return '直播间涨粉';
   if (field === '加热方式') return '放量加热';
   if (field === '出价/目标ROI') return '￥0.00';
@@ -543,9 +814,22 @@ function renderBusinessCell(field, row) {
   if (field === '投放号') {
     return '<div>畅移小店</div><div class="online"><span></span>在线</div>';
   }
-  if (field === '投放金额/消耗进度') {
-    const amountText = Number(row.amount).toFixed(2);
-    const progressValue = Math.min(100, Math.max(0, row.amount ? (Number(row.todaySpend) / Number(row.amount)) * 100 : 0));
+  if (field === '今日消耗金额/进度' || field === '周期内消耗金额/进度' || field === '总消耗金额/进度') {
+    const statisticsStart = parseStatisticsDate(longTermStatisticsStartLabel.textContent.trim());
+    const statisticsEnd = parseStatisticsDate(longTermStatisticsEndLabel.textContent.trim());
+    const statisticsDays = Math.max(1, Math.round((statisticsEnd - statisticsStart) / 86400000) + 1);
+    const amount = field === '今日消耗金额/进度'
+      ? Number(row.todaySpend)
+      : field === '周期内消耗金额/进度'
+        ? Number(row.averageDailySpend) * statisticsDays
+        : Number(row.totalSpend);
+    const budget = field === '今日消耗金额/进度'
+      ? Number(row.dailyBudget)
+      : field === '周期内消耗金额/进度'
+        ? Number(row.dailyBudget) * statisticsDays
+        : Number(row.dailyBudget) * Number(row.planDays);
+    const amountText = amount.toFixed(2);
+    const progressValue = Math.min(100, Math.max(0, budget ? (amount / budget) * 100 : 0));
     const progressText = `${progressValue.toFixed(2)}%`;
     return `<div class="amount-value">￥${amountText}</div><div class="spend-progress"><span class="spend-progress-track"><i style="width: ${progressValue}%"></i></span><span>${progressText}</span></div>`;
   }
@@ -557,8 +841,10 @@ function getDeliveryStateText(state) {
   if (state === 'unauthorized') return '未授权代扣';
   if (state === 'pending') return '待启动';
   if (state === 'reviewing') return '审核中';
+  if (state === 'settling') return '结算中';
   if (state === 'paused') return '已暂停';
   if (state === 'closed') return '已完成';
+  if (state === 'canceled') return '已取消';
   return '加热中';
 }
 
@@ -576,16 +862,62 @@ function renderRowActions(row, rowIndex) {
   if (row.deliveryState === 'paused') {
     return `<div class="row-actions">${dataAction}&nbsp; <button class="row-action-button" type="button" data-toggle-status="${rowIndex}">恢复</button>&nbsp; ${redeliverAction}</div>`;
   }
-  if (row.deliveryState === 'active' || row.deliveryState === 'pending') {
+  if (row.deliveryState === 'active' || row.deliveryState === 'pending' || row.deliveryState === 'reviewing') {
     return `<div class="row-actions">${dataAction}&nbsp; <button class="row-action-button" type="button" data-close-delivery="${rowIndex}">终止</button>&nbsp; <button class="row-action-button" type="button" data-toggle-status="${rowIndex}">暂停</button>&nbsp; ${redeliverAction}</div>`;
   }
   return `<div class="row-actions">${dataAction}&nbsp; ${redeliverAction}</div>`;
+}
+
+function getPlanFieldSortValue(field, row) {
+  if (field === '每日预算') return Number(row.dailyBudget);
+  if (field === '今日消耗金额/进度') return Number(row.todaySpend);
+  if (field === '周期内消耗金额/进度') {
+    const statisticsStart = parseStatisticsDate(longTermStatisticsStartLabel.textContent.trim());
+    const statisticsEnd = parseStatisticsDate(longTermStatisticsEndLabel.textContent.trim());
+    const statisticsDays = Math.max(1, Math.round((statisticsEnd - statisticsStart) / 86400000) + 1);
+    return Number(row.averageDailySpend) * statisticsDays;
+  }
+  if (field === '总消耗金额/进度') return Number(row.totalSpend);
+  return 0;
+}
+
+function renderPlanFieldHeader(field) {
+  const tooltip = planFieldTooltips[field]
+    ? `<span class="tab-help effect-help plan-column-help" tabindex="0" aria-label="${planFieldTooltips[field]}" data-tooltip="${planFieldTooltips[field]}">?</span>`
+    : '';
+  if (!sortablePlanFields.has(field)) return `${field}${tooltip}`;
+  const isActive = activePlanSortField === field;
+  const sortClass = isActive ? ` is-active is-${activePlanSortDirection}` : '';
+  return `<button class="plan-sort-button${sortClass}" type="button" data-plan-sort="${field}">${field}<span aria-hidden="true"></span></button>${tooltip}`;
+}
+
+function showPlanFieldTooltip(target) {
+  planFieldTooltip.textContent = target.dataset.tooltip;
+  planFieldTooltip.hidden = false;
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = planFieldTooltip.getBoundingClientRect();
+  const left = Math.min(window.innerWidth - tooltipRect.width - 12, Math.max(12, targetRect.right - tooltipRect.width + 18));
+  const top = Math.max(12, targetRect.top - tooltipRect.height - 13);
+  const arrowLeft = Math.min(tooltipRect.width - 18, Math.max(18, targetRect.left + targetRect.width / 2 - left));
+  planFieldTooltip.style.left = `${left}px`;
+  planFieldTooltip.style.top = `${top}px`;
+  planFieldTooltip.style.setProperty('--tooltip-arrow-left', `${arrowLeft}px`);
+}
+
+function hidePlanFieldTooltip() {
+  planFieldTooltip.hidden = true;
 }
 
 function renderTable() {
   const visibleColumns = selectedColumnOrder;
   const visibleRows = planRows.map((row, rowIndex) => ({ row, rowIndex }))
     .filter(({ row }) => !planStatusFilter.value || row.deliveryState === planStatusFilter.value);
+  if (activePlanSortField) {
+    visibleRows.sort((firstItem, secondItem) => {
+      const result = getPlanFieldSortValue(activePlanSortField, firstItem.row) - getPlanFieldSortValue(activePlanSortField, secondItem.row);
+      return activePlanSortDirection === 'asc' ? result : -result;
+    });
+  }
   const allRowsSelected = planRows.length > 0 && selectedPlanIds.size === planRows.length;
   const someRowsSelected = selectedPlanIds.size > 0 && !allRowsSelected;
   tableHead.innerHTML = `
@@ -593,7 +925,7 @@ function renderTable() {
     <th class="plan-column">计划名称/ID</th>
     <th class="target-account-column">被投号</th>
     <th class="status-column">状态/操作</th>
-    ${visibleColumns.map((field) => `<th class="business-column" data-field="${field}">${field}</th>`).join('')}
+    ${visibleColumns.map((field) => `<th class="business-column" data-field="${field}" aria-sort="${activePlanSortField === field ? (activePlanSortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}">${renderPlanFieldHeader(field)}</th>`).join('')}
   `;
 
   tableBody.innerHTML = visibleRows.map(({ row, rowIndex }) => `
@@ -611,6 +943,9 @@ function renderTable() {
 planStatusFilter.addEventListener('change', renderTable);
 longTermFilterReset.addEventListener('click', () => {
   planStatusFilter.value = '';
+  longTermListDateInputs.forEach((input) => {
+    input.value = '';
+  });
   renderTable();
 });
 
@@ -834,6 +1169,18 @@ confirmSettingsButton.addEventListener('click', () => {
 });
 
 tableHead.addEventListener('click', (event) => {
+  const sortButton = event.target.closest('[data-plan-sort]');
+  if (sortButton) {
+    const nextField = sortButton.dataset.planSort;
+    if (activePlanSortField === nextField) {
+      activePlanSortDirection = activePlanSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      activePlanSortField = nextField;
+      activePlanSortDirection = 'desc';
+    }
+    renderTable();
+    return;
+  }
   const selectAllButton = event.target.closest('[data-select-all]');
   if (!selectAllButton) return;
   if (selectedPlanIds.size === planRows.length) {
@@ -843,6 +1190,27 @@ tableHead.addEventListener('click', (event) => {
   }
   renderTable();
 });
+
+tableHead.addEventListener('mouseover', (event) => {
+  const help = event.target.closest('.plan-column-help');
+  if (help) showPlanFieldTooltip(help);
+});
+
+tableHead.addEventListener('mouseout', (event) => {
+  const help = event.target.closest('.plan-column-help');
+  if (help && !help.contains(event.relatedTarget)) hidePlanFieldTooltip();
+});
+
+tableHead.addEventListener('focusin', (event) => {
+  const help = event.target.closest('.plan-column-help');
+  if (help) showPlanFieldTooltip(help);
+});
+
+tableHead.addEventListener('focusout', (event) => {
+  if (event.target.closest('.plan-column-help')) hidePlanFieldTooltip();
+});
+
+window.addEventListener('scroll', hidePlanFieldTooltip, true);
 
 batchActions.addEventListener('click', (event) => {
   const actionButton = event.target.closest('[data-batch-action]');
@@ -896,7 +1264,7 @@ const stageTotalRoi = document.querySelector('#stage-total-roi');
 const stageTotalEntries = document.querySelector('#stage-total-entries');
 const stageTotalClickUsers = document.querySelector('#stage-total-click-users');
 const selectedStageMetrics = new Set([
-  'spend', 'exposure', 'views', 'actualEntries', 'clickUsers',
+  'spend', 'exposure', 'views', 'clickUsers',
   'clicks', 'clickCost', 'orders', 'orderAmount', 'roi'
 ]);
 let stageDateStart = '2026-07-13';
@@ -914,7 +1282,6 @@ const stageMetricDefinitions = {
   stageGmv: { label: '阶段GMV', color: '#ff9f43', format: 'money' },
   exposure: { label: '曝光数', color: '#7b61ff', format: 'integer' },
   views: { label: '观看数', color: '#18a0a8', format: 'integer' },
-  actualEntries: { label: '实际进入人数', color: '#ff7a45', format: 'integer' },
   clickUsers: { label: '商品点击人数', color: '#e455c4', format: 'integer' },
   clicks: { label: '商品点击次数', color: '#9a60d1', format: 'integer' },
   comments: { label: '评论次数', color: '#7bc043', format: 'integer' },
@@ -965,7 +1332,7 @@ function renderStageCalendarMonth(container, year, month) {
     date.setDate(firstCell.getDate() + index);
     const dateText = formatStageDate(date);
     const classes = [];
-    const exceedsMaximum = !draftStageDateEnd && Math.abs(parseStageDate(dateText) - parseStageDate(draftStageDateStart)) / 86400000 > 6;
+    const exceedsMaximum = !draftStageDateEnd && Math.abs(parseStageDate(dateText) - parseStageDate(draftStageDateStart)) / 86400000 > 59;
     if (date.getMonth() !== month) classes.push('is-muted');
     if (exceedsMaximum) classes.push('is-disabled-range');
     if (draftStageDateEnd && dateText > draftStageDateStart && dateText < draftStageDateEnd) classes.push('is-in-range');
@@ -1100,7 +1467,7 @@ function renderStageTrendChart() {
 }
 
 function renderStageDetailTable() {
-  const fieldOrder = ['spend', 'exposure', 'views', 'actualEntries', 'clickUsers', 'clicks', 'clickCost', 'orders', 'orderAmount', 'roi'];
+  const fieldOrder = ['spend', 'exposure', 'views', 'clickUsers', 'clicks', 'clickCost', 'orders', 'orderAmount', 'roi'];
   const sortState = stageDetailSortState[stageTimeMode];
   const visibleRows = [...getVisibleStageData()];
   if (sortState.key) {
@@ -1128,7 +1495,7 @@ function renderStageDetailTable() {
   stageDetailTableHead.innerHTML = `${renderSortableHeader('统计日期', 'date')}${stageTimeMode === 'hour' ? renderSortableHeader('时段', 'period') : ''}${metricHeaders}`;
   stageDetailTableBody.innerHTML = visibleRows.length ? visibleRows.map((row) => `
     <tr><td>${row.date}</td>${stageTimeMode === 'hour' ? `<td>${row.period}</td>` : ''}${fieldOrder.map((metricKey) => `<td>${formatStageMetric(metricKey, row[metricKey])}</td>`).join('')}</tr>
-  `).join('') : `<tr><td colspan="${stageTimeMode === 'hour' ? 12 : 11}" style="text-align:center;color:#a2abb8">暂无数据</td></tr>`;
+  `).join('') : `<tr><td colspan="${stageTimeMode === 'hour' ? 11 : 10}" style="text-align:center;color:#a2abb8">暂无数据</td></tr>`;
 }
 
 function renderStageSummary() {
@@ -1192,7 +1559,7 @@ stageDatePanel.addEventListener('click', (event) => {
 stageDateConfirm.addEventListener('click', () => {
   stageDateStart = draftStageDateStart;
   stageDateEnd = draftStageDateEnd || draftStageDateStart;
-  if (getStageDateRangeDays(stageDateStart, stageDateEnd) > 7) stageDateEnd = shiftStageDate(stageDateStart, 6);
+  if (getStageDateRangeDays(stageDateStart, stageDateEnd) > 60) stageDateEnd = shiftStageDate(stageDateStart, 59);
   stageDateStartLabel.textContent = stageDateStart;
   stageDateEndLabel.textContent = stageDateEnd;
   stageDatePanel.hidden = true;
@@ -1714,6 +2081,10 @@ const monthlyFinanceRows = [
 
 const financeTableBody = document.querySelector('#finance-table-body');
 const financePlanTypeFilter = document.querySelector('#finance-plan-type-filter');
+const financePlanTypeTrigger = document.querySelector('#finance-plan-type-trigger');
+const financePlanTypeLabel = document.querySelector('#finance-plan-type-label');
+const financePlanTypePanel = document.querySelector('#finance-plan-type-panel');
+const financePlanTypeOptions = financePlanTypePanel.querySelectorAll('[data-finance-plan-type]');
 const financeAccountFilter = document.querySelector('#finance-account-filter');
 const financeTargetFilter = document.querySelector('#finance-target-filter');
 const financeResetButton = document.querySelector('#finance-reset');
@@ -1721,11 +2092,11 @@ const financeRefreshButton = document.querySelector('#finance-refresh');
 const financeTotal = document.querySelector('#finance-total');
 const financeModeButtons = document.querySelectorAll('[data-finance-mode]');
 let financeMode = 'day';
+let selectedFinancePlanType = '';
 
 function renderFinanceTable() {
   const sourceRows = financeMode === 'day' ? dailyFinanceRows : monthlyFinanceRows;
-  const selectedType = financePlanTypeFilter.value;
-  const visibleRows = sourceRows.filter((row) => !selectedType || row.type === selectedType);
+  const visibleRows = sourceRows.filter((row) => !selectedFinancePlanType || row.type === selectedFinancePlanType);
   financeTableBody.innerHTML = visibleRows.map((row) => `
     <tr>
       <td>${row.date}</td>
@@ -1744,14 +2115,54 @@ function renderFinanceTable() {
       <td>${row.viewers}</td>
     </tr>
   `).join('');
-  financeTotal.textContent = selectedType ? `共 ${visibleRows.length} 条` : (financeMode === 'day' ? '共 31 条' : '共 12 条');
+  financeTotal.textContent = selectedFinancePlanType ? `共 ${visibleRows.length} 条` : (financeMode === 'day' ? '共 31 条' : '共 12 条');
 }
 
-financePlanTypeFilter.addEventListener('change', renderFinanceTable);
+function updateFinancePlanTypeLabel() {
+  financePlanTypeLabel.textContent = selectedFinancePlanType || '选择计划类型';
+  financePlanTypeTrigger.classList.toggle('has-value', Boolean(selectedFinancePlanType));
+}
+
+function closeFinancePlanTypeFilter() {
+  financePlanTypePanel.hidden = true;
+  financePlanTypeTrigger.setAttribute('aria-expanded', 'false');
+}
+
+financePlanTypeTrigger.addEventListener('click', () => {
+  const nextOpen = financePlanTypePanel.hidden;
+  financePlanTypePanel.hidden = !nextOpen;
+  financePlanTypeTrigger.setAttribute('aria-expanded', String(nextOpen));
+});
+
+financePlanTypePanel.addEventListener('click', (event) => {
+  const option = event.target.closest('[data-finance-plan-type]');
+  if (!option) return;
+  const planType = option.dataset.financePlanType;
+  selectedFinancePlanType = selectedFinancePlanType === planType ? '' : planType;
+  financePlanTypeOptions.forEach((candidate) => {
+    const isSelected = candidate.dataset.financePlanType === selectedFinancePlanType;
+    candidate.classList.toggle('is-selected', isSelected);
+    candidate.setAttribute('aria-pressed', String(isSelected));
+  });
+  updateFinancePlanTypeLabel();
+  closeFinancePlanTypeFilter();
+  renderFinanceTable();
+});
+
+document.addEventListener('click', (event) => {
+  if (!financePlanTypeFilter.contains(event.target)) closeFinancePlanTypeFilter();
+});
+
 financeResetButton.addEventListener('click', () => {
   financeAccountFilter.value = '';
   financeTargetFilter.value = '';
-  financePlanTypeFilter.value = '';
+  selectedFinancePlanType = '';
+  financePlanTypeOptions.forEach((option) => {
+    option.classList.remove('is-selected');
+    option.setAttribute('aria-pressed', 'false');
+  });
+  updateFinancePlanTypeLabel();
+  closeFinancePlanTypeFilter();
   renderFinanceTable();
 });
 
@@ -1798,22 +2209,26 @@ const shortVideoNoteFilter = document.querySelector('#short-video-note-filter');
 const shortVideoDescriptionFilter = document.querySelector('#short-video-description-filter');
 const shortVideoTargetFilter = document.querySelector('#short-video-target-filter');
 const shortVideoPlanTypeFilter = document.querySelector('#short-video-plan-type-filter');
+const shortVideoPlanTypeTrigger = document.querySelector('#short-video-plan-type-trigger');
+const shortVideoPlanTypeLabel = document.querySelector('#short-video-plan-type-label');
+const shortVideoPlanTypePanel = document.querySelector('#short-video-plan-type-panel');
+const shortVideoPlanTypeOptions = shortVideoPlanTypePanel.querySelectorAll('[data-short-video-plan-type]');
 const shortVideoResetButton = document.querySelector('#short-video-reset');
 const shortVideoRefreshButton = document.querySelector('#short-video-refresh');
 const shortVideoTotal = document.querySelector('#short-video-total');
 const shortVideoDetailLayer = document.querySelector('#short-video-detail-layer');
 const shortVideoDetailBody = document.querySelector('#short-video-detail-body');
+let selectedShortVideoPlanType = '';
 
 function getFilteredShortVideoRows() {
   const note = shortVideoNoteFilter.value.trim().toLowerCase();
   const description = shortVideoDescriptionFilter.value.trim().toLowerCase();
   const target = shortVideoTargetFilter.value;
-  const type = shortVideoPlanTypeFilter.value;
   return shortVideoRows.map((row, index) => ({ row, index })).filter(({ row }) =>
     (!note || row.note.toLowerCase().includes(note)) &&
     (!description || row.description.toLowerCase().includes(description)) &&
     (!target || row.account === target) &&
-    (!type || row.type === type)
+    (!selectedShortVideoPlanType || row.type === selectedShortVideoPlanType)
   );
 }
 
@@ -1837,19 +2252,59 @@ function renderShortVideoTable() {
       <td>0</td>
     </tr>
   `).join('');
-  const filtering = shortVideoNoteFilter.value || shortVideoDescriptionFilter.value || shortVideoTargetFilter.value || shortVideoPlanTypeFilter.value;
+  const filtering = shortVideoNoteFilter.value || shortVideoDescriptionFilter.value || shortVideoTargetFilter.value || selectedShortVideoPlanType;
   shortVideoTotal.textContent = filtering ? `共 ${visibleRows.length} 条` : '共 22 条';
 }
 
 [shortVideoNoteFilter, shortVideoDescriptionFilter].forEach((input) => input.addEventListener('input', renderShortVideoTable));
 shortVideoTargetFilter.addEventListener('change', renderShortVideoTable);
-shortVideoPlanTypeFilter.addEventListener('change', renderShortVideoTable);
+
+function updateShortVideoPlanTypeLabel() {
+  shortVideoPlanTypeLabel.textContent = selectedShortVideoPlanType || '选择计划类型';
+  shortVideoPlanTypeTrigger.classList.toggle('has-value', Boolean(selectedShortVideoPlanType));
+}
+
+function closeShortVideoPlanTypeFilter() {
+  shortVideoPlanTypePanel.hidden = true;
+  shortVideoPlanTypeTrigger.setAttribute('aria-expanded', 'false');
+}
+
+shortVideoPlanTypeTrigger.addEventListener('click', () => {
+  const nextOpen = shortVideoPlanTypePanel.hidden;
+  shortVideoPlanTypePanel.hidden = !nextOpen;
+  shortVideoPlanTypeTrigger.setAttribute('aria-expanded', String(nextOpen));
+});
+
+shortVideoPlanTypePanel.addEventListener('click', (event) => {
+  const option = event.target.closest('[data-short-video-plan-type]');
+  if (!option) return;
+  const planType = option.dataset.shortVideoPlanType;
+  selectedShortVideoPlanType = selectedShortVideoPlanType === planType ? '' : planType;
+  shortVideoPlanTypeOptions.forEach((candidate) => {
+    const isSelected = candidate.dataset.shortVideoPlanType === selectedShortVideoPlanType;
+    candidate.classList.toggle('is-selected', isSelected);
+    candidate.setAttribute('aria-pressed', String(isSelected));
+  });
+  updateShortVideoPlanTypeLabel();
+  closeShortVideoPlanTypeFilter();
+  renderShortVideoTable();
+});
+
+document.addEventListener('click', (event) => {
+  if (!shortVideoPlanTypeFilter.contains(event.target)) closeShortVideoPlanTypeFilter();
+});
 
 shortVideoResetButton.addEventListener('click', () => {
   shortVideoNoteFilter.value = '';
   shortVideoDescriptionFilter.value = '';
   shortVideoTargetFilter.value = '';
-  shortVideoPlanTypeFilter.selectedIndex = 0;
+  selectedShortVideoPlanType = '';
+  shortVideoPlanTypeOptions.forEach((option) => {
+    option.classList.remove('is-selected');
+    option.setAttribute('aria-pressed', 'false');
+  });
+  updateShortVideoPlanTypeLabel();
+  closeShortVideoPlanTypeFilter();
   renderShortVideoTable();
 });
 
@@ -1910,25 +2365,27 @@ const shutdownNameInput = document.querySelector('#shutdown-strategy-name');
 const shutdownStrategyPlanType = document.querySelector('#shutdown-strategy-plan-type');
 const shutdownStrategyType = document.querySelector('#shutdown-strategy-type');
 const shutdownStrategyRule = document.querySelector('#shutdown-strategy-rule');
+const shutdownNameCount = document.querySelector('#shutdown-name-count');
+const shutdownDimensionOptions = document.querySelectorAll('[data-shutdown-dimension]');
+const shutdownStrategyKindOptions = document.querySelectorAll('[name="shutdown-strategy-kind"]');
 let editingShutdownIndex = -1;
-const selectedShutdownPlanTypes = new Set();
+let selectedShutdownPlanType = '';
 
 function renderShutdownTable() {
   const keyword = shutdownNameFilter.value.trim().toLowerCase();
   const rows = shutdownRows.map((row, index) => ({ row, index })).filter(({ row }) =>
     (!keyword || row.name.toLowerCase().includes(keyword)) &&
-    (selectedShutdownPlanTypes.size === 0 || [...selectedShutdownPlanTypes].some((type) => row.planType.includes(type)))
+    (!selectedShutdownPlanType || row.planType.includes(selectedShutdownPlanType))
   );
   shutdownTableBody.innerHTML = rows.map(({ row, index }) => `
     <tr><td>${row.strategyType}</td><td>${escapeAudienceText(row.name)}</td><td>${renderPlanTypeTags(row.planType)}</td><td title="${escapeAudienceText(row.rule)}">${escapeAudienceText(row.rule)}</td><td>${row.dimension}</td><td>${row.method}</td><td>${row.period}</td><td>${row.creator}</td><td>${row.createdAt}</td><td><button class="shutdown-switch${row.enabled ? ' is-on' : ''}" type="button" data-shutdown-toggle="${index}"></button><div><button class="shutdown-action" type="button" data-shutdown-edit="${index}">修改</button><button class="shutdown-action is-delete" type="button" data-shutdown-delete="${index}">删除</button></div></td></tr>
   `).join('');
-  shutdownTotal.textContent = keyword || selectedShutdownPlanTypes.size ? `共 ${rows.length} 条` : '共 65 条';
+  shutdownTotal.textContent = keyword || selectedShutdownPlanType ? `共 ${rows.length} 条` : '共 65 条';
 }
 
 function updateShutdownPlanTypeLabel() {
-  const selectedTypes = [...selectedShutdownPlanTypes];
-  shutdownPlanTypeLabel.textContent = selectedTypes.length ? selectedTypes.join('、') : '选择计划类型';
-  shutdownPlanTypeTrigger.classList.toggle('has-value', selectedTypes.length > 0);
+  shutdownPlanTypeLabel.textContent = selectedShutdownPlanType || '选择计划类型';
+  shutdownPlanTypeTrigger.classList.toggle('has-value', Boolean(selectedShutdownPlanType));
 }
 
 function closeShutdownPlanTypeFilter() {
@@ -1939,11 +2396,19 @@ function closeShutdownPlanTypeFilter() {
 function openShutdownModal(index = -1) {
   editingShutdownIndex = index;
   const row = index < 0 ? null : shutdownRows[index];
-  shutdownDialogTitle.textContent = row ? '修改关停策略' : '新建关停策略';
+  shutdownDialogTitle.textContent = row ? '修改策略' : '新建策略';
   shutdownNameInput.value = row ? row.name : '';
-  shutdownStrategyPlanType.value = row ? row.planType : '标准计划';
+  shutdownNameCount.textContent = String(shutdownNameInput.value.length);
+  shutdownStrategyPlanType.value = row && ['标准计划', '长期计划'].includes(row.planType) ? row.planType : '';
   shutdownStrategyType.value = row ? row.strategyType : '自定义';
-  shutdownStrategyRule.value = row ? row.rule : '消耗金额>1元';
+  shutdownStrategyKindOptions.forEach((option) => { option.checked = option.value === shutdownStrategyType.value; });
+  if (![...shutdownStrategyKindOptions].some((option) => option.checked)) {
+    shutdownStrategyKindOptions[0].checked = true;
+    shutdownStrategyType.value = shutdownStrategyKindOptions[0].value;
+  }
+  const activeDimension = row?.dimension === '投放号' ? '指定投放号' : '指定订单';
+  shutdownDimensionOptions.forEach((option) => option.classList.toggle('is-selected', option.dataset.shutdownDimension === activeDimension));
+  shutdownStrategyRule.value = row ? row.rule : '';
   shutdownModal.hidden = false;
   shutdownNameInput.focus();
 }
@@ -1957,10 +2422,13 @@ document.querySelector('#save-shutdown-strategy').addEventListener('click', () =
   const name = shutdownNameInput.value.trim();
   if (!name) { shutdownNameInput.focus(); return; }
   const planType = shutdownStrategyPlanType.value || '标准计划、长期计划';
+  const selectedDimension = document.querySelector('[data-shutdown-dimension].is-selected')?.dataset.shutdownDimension || '指定订单';
+  const dimension = selectedDimension === '指定投放号' ? '投放号' : '指定订单';
+  const rule = shutdownStrategyRule.value.trim() || '消耗金额>1元';
   if (editingShutdownIndex < 0) {
-    shutdownRows.unshift({ strategyType: shutdownStrategyType.value, name, planType, rule: shutdownStrategyRule.value, dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-07-16 10:30:00', enabled: true });
+    shutdownRows.unshift({ strategyType: shutdownStrategyType.value, name, planType, rule, dimension, method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-07-16 10:30:00', enabled: true });
   } else {
-    Object.assign(shutdownRows[editingShutdownIndex], { strategyType: shutdownStrategyType.value, name, planType, rule: shutdownStrategyRule.value });
+    Object.assign(shutdownRows[editingShutdownIndex], { strategyType: shutdownStrategyType.value, name, planType, rule, dimension });
   }
   closeShutdownModal();
   renderShutdownTable();
@@ -1985,12 +2453,14 @@ shutdownPlanTypePanel.addEventListener('click', (event) => {
   const option = event.target.closest('[data-shutdown-plan-type]');
   if (!option) return;
   const planType = option.dataset.shutdownPlanType;
-  if (selectedShutdownPlanTypes.has(planType)) selectedShutdownPlanTypes.delete(planType);
-  else selectedShutdownPlanTypes.add(planType);
-  const isSelected = selectedShutdownPlanTypes.has(planType);
-  option.classList.toggle('is-selected', isSelected);
-  option.setAttribute('aria-pressed', String(isSelected));
+  selectedShutdownPlanType = selectedShutdownPlanType === planType ? '' : planType;
+  shutdownPlanTypeOptions.forEach((candidate) => {
+    const isSelected = candidate.dataset.shutdownPlanType === selectedShutdownPlanType;
+    candidate.classList.toggle('is-selected', isSelected);
+    candidate.setAttribute('aria-pressed', String(isSelected));
+  });
   updateShutdownPlanTypeLabel();
+  closeShutdownPlanTypeFilter();
   renderShutdownTable();
 });
 document.addEventListener('click', (event) => {
@@ -1998,7 +2468,7 @@ document.addEventListener('click', (event) => {
 });
 shutdownResetButton.addEventListener('click', () => {
   shutdownNameFilter.value = '';
-  selectedShutdownPlanTypes.clear();
+  selectedShutdownPlanType = '';
   shutdownPlanTypeOptions.forEach((option) => {
     option.classList.remove('is-selected');
     option.setAttribute('aria-pressed', 'false');
@@ -2010,6 +2480,21 @@ shutdownResetButton.addEventListener('click', () => {
 });
 shutdownRefreshButton.addEventListener('click', () => { shutdownRefreshButton.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 420 }); renderShutdownTable(); });
 document.querySelectorAll('.shutdown-tabs button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.shutdown-tabs button').forEach((item) => item.classList.toggle('active', item === button)); }));
+
+shutdownNameInput.addEventListener('input', () => {
+  shutdownNameCount.textContent = String(shutdownNameInput.value.length);
+});
+shutdownDimensionOptions.forEach((option) => option.addEventListener('click', () => {
+  shutdownDimensionOptions.forEach((candidate) => candidate.classList.toggle('is-selected', candidate === option));
+}));
+shutdownStrategyKindOptions.forEach((option) => option.addEventListener('change', () => {
+  if (option.checked) shutdownStrategyType.value = option.value;
+}));
+document.querySelectorAll('.shutdown-mini-switch').forEach((button) => button.addEventListener('click', () => {
+  const nextOn = !button.classList.contains('is-on');
+  button.classList.toggle('is-on', nextOn);
+  button.setAttribute('aria-pressed', String(nextOn));
+}));
 
 const deliveryAccountRows = [
   { name: '畅移小店', note: '测试专用账号', kind: '企业', status: '在线', countdown: '3天23小时4分37秒', balance: '2,792.20', partners: 3, login: '2026-07-13 11:11:35' },

@@ -60,6 +60,12 @@ const videoSelectorBody = document.querySelector('#video-selector-body');
 const videoSelectAll = document.querySelector('#video-select-all');
 const selectedVideoTags = document.querySelector('#selected-video-tags');
 const selectedVideoCoverPreview = document.querySelector('#selected-video-cover-preview');
+const openAudienceTemplate = document.querySelector('#open-audience-template');
+const audienceTemplateLayer = document.querySelector('#audience-template-layer');
+const closeAudienceTemplate = document.querySelector('#close-audience-template');
+const audienceTemplateSearch = document.querySelector('#audience-template-search');
+const audienceTemplateList = document.querySelector('#audience-template-list');
+const audienceTemplateEmpty = document.querySelector('#audience-template-empty');
 
 let planCount = 1;
 let selectedAmount = Number(dailyBudgetOptions.querySelector('input[name="daily-budget"]:checked')?.value || 100);
@@ -85,6 +91,17 @@ const videoOptions = [
   { id: 'video-14', name: '一分钟妆容', description: '快速通勤妆教程', cy: 'CY100004601843', tag: '美妆', value: '探索', time: '2026-05-25 07:48:06', uploader: '内容测试', thumb: 'video-thumb-2' },
   { id: 'video-15', name: '海边落日延时', description: '海边黄昏延时摄影', cy: 'CY100004590214', tag: '风景', value: '高潜', time: '2026-05-24 19:26:14', uploader: '高良测试', thumb: 'video-thumb-3' },
   { id: 'video-16', name: '新品开箱实测', description: '新品功能真实体验', cy: 'CY100004581906', tag: '测评', value: '探索', time: '2026-05-23 13:12:33', uploader: '高良测试', thumb: 'video-thumb-4' }
+];
+const audienceTemplateOptions = [
+  '11232',
+  '001看模板长度展示单纯查看模板长度展示单纯查看模板长度展示单纯查看模板长度展示',
+  '001看模板长度展示单纯查看模板长度展示单纯查看模板长度展示',
+  '44-保存',
+  '44',
+  'test',
+  '329定向人群模板',
+  '接口测试',
+  '测试112'
 ];
 
 function updateOrderSummary() {
@@ -148,6 +165,42 @@ function syncAuthorCustomerVisibility() {
     authorCustomerConfirm.hidden = true;
   }
 }
+
+function renderAudienceTemplates() {
+  const keyword = audienceTemplateSearch.value.trim().toLowerCase();
+  const visibleTemplates = audienceTemplateOptions.filter((name) => name.toLowerCase().includes(keyword));
+  audienceTemplateList.innerHTML = visibleTemplates.map((name) => `
+    <div class="audience-template-row">
+      <span title="${name}">${name}</span>
+      <button type="button" data-select-audience-template="${name}">选择</button>
+    </div>
+  `).join('');
+  audienceTemplateList.hidden = visibleTemplates.length === 0;
+  audienceTemplateEmpty.hidden = visibleTemplates.length > 0;
+}
+
+function hideAudienceTemplate() {
+  audienceTemplateLayer.hidden = true;
+  audienceTemplateSearch.value = '';
+}
+
+openAudienceTemplate.addEventListener('click', () => {
+  renderAudienceTemplates();
+  audienceTemplateLayer.hidden = false;
+  audienceTemplateSearch.focus();
+});
+
+closeAudienceTemplate.addEventListener('click', hideAudienceTemplate);
+audienceTemplateSearch.addEventListener('input', renderAudienceTemplates);
+audienceTemplateList.addEventListener('click', (event) => {
+  const selectButton = event.target.closest('[data-select-audience-template]');
+  if (!selectButton) return;
+  hideAudienceTemplate();
+});
+
+audienceTemplateLayer.addEventListener('click', (event) => {
+  if (event.target === audienceTemplateLayer) hideAudienceTemplate();
+});
 
 document.querySelectorAll('[data-step]').forEach((button) => {
   button.addEventListener('click', () => {

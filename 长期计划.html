@@ -60,6 +60,7 @@
             <button class="submenu-item" type="button">标准计划</button>
             <button class="submenu-item" type="button" data-page="long-term-plan">长期计划</button>
             <button class="submenu-item" type="button">智能赔付</button>
+            <button class="submenu-item" type="button" data-page="delivery-statistics">直播间投放统计</button>
           </div>
         </section>
 
@@ -78,11 +79,11 @@
         <section class="menu-group open">
           <button class="menu-group-title" type="button" aria-expanded="true">
             <span class="menu-icon icon-resource">♙</span>
-            <span>直播资源管理</span>
+            <span>视频号管理</span>
             <span class="chevron">⌃</span>
           </button>
           <div class="submenu">
-            <button class="submenu-item" type="button">直播账号</button>
+            <button class="submenu-item" type="button">直播账号授权</button>
             <button class="submenu-item" type="button">直播场次</button>
           </div>
         </section>
@@ -92,9 +93,6 @@
         </button>
         <button class="single-menu-item" type="button" data-page="plan-group">
           <span class="menu-icon">▤</span><span>计划分组</span>
-        </button>
-        <button class="single-menu-item" type="button" data-page="delivery-statistics">
-          <span class="menu-icon">▥</span><span>直播间投放统计</span>
         </button>
         <button class="single-menu-item" type="button" data-page="auto-shutdown">
           <span class="menu-icon">▣</span><span>自动关停策略</span>
@@ -107,7 +105,7 @@
           <span class="menu-icon">▨</span><span>短视频统计</span>
         </button>
         <button class="single-menu-item" type="button" data-page="delivery-account">
-          <span class="menu-icon">▧</span><span>投放号管理</span>
+          <span class="menu-icon">▧</span><span>投放号授权管理</span>
         </button>
       </nav>
 
@@ -116,6 +114,59 @@
 
     <main class="content" aria-label="长期计划页面内容">
       <div id="long-term-page" class="page-view">
+      <div class="long-term-statistics-toolbar">
+        <button class="long-term-page-tab active" type="button">长期计划</button>
+        <div id="long-term-statistics-picker" class="long-term-statistics-picker">
+          <button id="long-term-statistics-trigger" class="long-term-statistics-trigger" type="button" aria-haspopup="dialog" aria-expanded="false">
+            <span>统计</span><i>|</i>
+            <b id="long-term-statistics-start-label">2026-07-24</b>
+            <em>至</em>
+            <b id="long-term-statistics-end-label">2026-07-30</b>
+            <span class="long-term-statistics-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div id="long-term-statistics-panel" class="long-term-statistics-panel" role="dialog" aria-label="选择统计时间" hidden>
+            <input id="long-term-statistics-start-input" type="hidden" value="2026-07-24">
+            <input id="long-term-statistics-end-input" type="hidden" value="2026-07-30">
+            <div class="long-term-statistics-calendar-layout">
+              <div class="long-term-statistics-shortcuts">
+                <button type="button" data-statistics-range="today">今天</button>
+                <button type="button" data-statistics-range="yesterday">昨天</button>
+                <button type="button" data-statistics-range="last7">近7天</button>
+                <button type="button" data-statistics-range="last30">近30天</button>
+                <button type="button" data-statistics-range="thisMonth">本月</button>
+                <button type="button" data-statistics-range="last7WithoutToday">近7天-不含今</button>
+                <button type="button" data-statistics-range="last30WithoutToday">近30天-不含今</button>
+              </div>
+              <div class="long-term-statistics-calendars">
+                <section class="long-term-statistics-calendar">
+                  <header>
+                    <button type="button" data-statistics-month="previousYear" aria-label="上一年">«</button>
+                    <button type="button" data-statistics-month="previous" aria-label="上个月">‹</button>
+                    <strong id="long-term-statistics-left-month"></strong>
+                    <span></span><span></span>
+                  </header>
+                  <div class="long-term-statistics-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+                  <div id="long-term-statistics-left-days" class="long-term-statistics-days"></div>
+                </section>
+                <section class="long-term-statistics-calendar">
+                  <header>
+                    <span></span><span></span>
+                    <strong id="long-term-statistics-right-month"></strong>
+                    <button type="button" data-statistics-month="next" aria-label="下个月">›</button>
+                    <button type="button" data-statistics-month="nextYear" aria-label="下一年">»</button>
+                  </header>
+                  <div class="long-term-statistics-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+                  <div id="long-term-statistics-right-days" class="long-term-statistics-days"></div>
+                </section>
+              </div>
+            </div>
+            <div class="long-term-statistics-actions">
+              <button id="long-term-statistics-cancel" type="button">取消</button>
+              <button id="long-term-statistics-confirm" class="primary" type="button">确定</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <section class="filter-panel ui-panel">
         <div class="filter-grid filter-grid-primary">
           <div class="filter-control input-control">输入计划名称</div>
@@ -140,20 +191,19 @@
         <div class="filter-grid filter-grid-secondary">
           <div class="filter-control select-control">选择加热素材</div>
           <div class="filter-control select-control">选择计划分组</div>
-          <div class="date-filter">
-            <div id="date-type-select" class="date-type-select">
-              <button id="date-type-trigger" class="date-type" type="button" aria-haspopup="listbox" aria-expanded="false">
-                <span id="date-type-label">创建时间</span>
-              </button>
-              <div id="date-type-options" class="date-type-options" role="listbox" hidden>
-                <button type="button" role="option" data-date-type="加热时间" aria-selected="false">加热时间</button>
-                <button type="button" role="option" data-date-type="创建时间" aria-selected="true">创建时间</button>
-              </div>
-            </div>
-            <span class="date-value">2026-07-13 00:00:00</span>
-            <span class="date-separator">-</span>
-            <span class="date-value">2026-07-13 23:59:59</span>
-            <span class="calendar-icon">□</span>
+          <div class="long-term-list-date-filter">
+            <span>创建时间</span>
+            <input id="long-term-created-start" type="date" aria-label="创建开始时间">
+            <i>-</i>
+            <input id="long-term-created-end" type="date" aria-label="创建结束时间">
+            <b aria-hidden="true">▣</b>
+          </div>
+          <div class="long-term-list-date-filter">
+            <span>加热时间</span>
+            <input id="long-term-heating-start" type="date" aria-label="加热开始时间">
+            <i>-</i>
+            <input id="long-term-heating-end" type="date" aria-label="加热结束时间">
+            <b aria-hidden="true">▣</b>
           </div>
           <button id="long-term-filter-reset" class="reset-button" type="button">重置</button>
         </div>
@@ -201,7 +251,7 @@
             <div class="effect-group effect-group-exposure">
               <h3><span></span>曝光表现</h3>
               <div class="effect-item"><span>总曝光人数</span><i aria-hidden="true"></i></div>
-              <div class="effect-item"><span>进入直播间人数</span><i aria-hidden="true"></i></div>
+              <div class="effect-item"><span>进入直播间观看人数</span><i aria-hidden="true"></i></div>
               <div class="effect-item"><span>进入成本 <span class="help-dot">?</span></span><i aria-hidden="true"></i></div>
               <div class="effect-item"><span>千展费用 <span class="help-dot">?</span></span><i aria-hidden="true"></i></div>
             </div>
@@ -221,18 +271,9 @@
               <div class="effect-item"><span>转化成本 <span class="help-dot">?</span></span><i aria-hidden="true"></i></div>
               <div class="effect-item"><span>GPM <span class="help-dot">?</span></span><i aria-hidden="true"></i></div>
             </div>
-            <div class="effect-group effect-group-deal">
-              <h3><span></span>成交表现</h3>
-              <div class="effect-item"><span>付款优惠券</span><span>¥0.00</span></div>
-              <div class="effect-item"><span>退款优惠券</span><span>¥0.00</span></div>
-              <div class="effect-item"><span>保障券消耗(预估)</span><span>¥0.00</span></div>
-              <div class="effect-item"><span>流量点差值</span><span>¥0.00</span></div>
-              <div class="effect-item"><span>减券消耗ROI <span class="help-dot">?</span></span><span>0.00</span></div>
-            </div>
             <div class="effect-group effect-group-roi">
               <h3><span></span>ROI表现</h3>
               <div class="effect-item"><span>补贴返券金额</span><span>¥0.00</span></div>
-              <div class="effect-item"><span>减返券ROI <span class="help-dot">?</span></span><span>0.00</span></div>
             </div>
             <div class="effect-group effect-group-feedback">
               <h3><span></span>反馈表现</h3>
@@ -247,18 +288,18 @@
           <div class="trend-heading">
             <h2>数据趋势 <small>（最多可展示60天的趋势图）</small></h2>
             <div class="trend-tabs" aria-label="趋势统计范围">
-              <button type="button" data-trend-mode="day" aria-pressed="false">按天统计</button>
-              <button class="active" type="button" data-trend-mode="hour" aria-pressed="true">按时段统计</button>
+              <button class="active" type="button" data-trend-mode="day" aria-pressed="true">按天统计</button>
+              <button type="button" data-trend-mode="hour" aria-pressed="false">全时段统计</button>
             </div>
           </div>
           <div class="trend-legend" aria-hidden="true">
-            <span class="legend-consume">消耗金额</span>
+            <span class="legend-consume">总消耗金额</span>
             <span class="legend-order">总成交订单数</span>
-            <span class="legend-amount">总成交订单金额</span>
-            <span class="legend-roi">成交ROI</span>
+            <span class="legend-amount">总成交金额</span>
+            <span class="legend-roi">总成交ROI</span>
           </div>
           <div id="main-trend-chart" class="trend-chart" role="img" aria-label="长期计划数据趋势折线图">
-            <svg id="main-trend-svg" viewBox="0 0 1000 205" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <svg id="main-trend-svg" viewBox="0 0 1000 240" aria-hidden="true"></svg>
             <div id="main-trend-tooltip" class="trend-tooltip" hidden></div>
           </div>
         </section>
@@ -325,7 +366,7 @@
           <div class="audience-toolbar">
             <button id="create-audience-template" class="primary-button audience-create-button" type="button">新建定向模板</button>
             <div class="audience-toolbar-right">
-              <span>将多个定向集合快速创建为定向模板，创建广告时可以直接使用，多个广告可以使用同一个定向模板</span>
+              <span>定向模板适用于标准/长期计划，创建计划时可选用，且多个计划可共用同一模板。</span>
               <button id="refresh-audience-table" class="audience-icon-button" type="button" aria-label="刷新">↻</button>
             </div>
           </div>
@@ -374,9 +415,12 @@
         <section class="plan-group-list ui-panel">
           <div class="plan-group-toolbar">
             <button id="create-plan-group" class="primary-button" type="button">新增</button>
-            <div class="plan-group-tools">
-              <button type="button" aria-label="设置">⚙</button>
-              <button id="refresh-plan-group" type="button" aria-label="刷新">↻</button>
+            <div class="plan-group-toolbar-right">
+              <span>计划分组可用于标准/长期计划，创建计划及列表筛选时可选用；筛选或统计时，仅显示当前类型下该分组关联的计划。</span>
+              <div class="plan-group-tools">
+                <button type="button" aria-label="设置">⚙</button>
+                <button id="refresh-plan-group" type="button" aria-label="刷新">↻</button>
+              </div>
             </div>
           </div>
           <div class="plan-group-table-wrap">
@@ -412,13 +456,13 @@
         <section class="statistics-filter ui-panel" aria-label="直播间投放统计筛选">
           <div class="statistics-select">选择被投号</div>
           <div class="statistics-select">选择状态</div>
-          <div id="statistics-order-type-filter" class="statistics-order-type-filter">
-            <button id="statistics-order-type-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <div id="statistics-order-type-filter" class="shutdown-plan-type-filter">
+            <button id="statistics-order-type-trigger" type="button" aria-haspopup="true" aria-expanded="false">
               <span id="statistics-order-type-label">选择计划类型</span><span>⌄</span>
             </button>
-            <div id="statistics-order-type-panel" class="statistics-order-type-panel" role="listbox" aria-multiselectable="true" hidden>
-              <button type="button" role="option" data-statistics-order-type="标准计划" aria-selected="false">标准计划</button>
-              <button type="button" role="option" data-statistics-order-type="长期计划" aria-selected="false">长期计划</button>
+            <div id="statistics-order-type-panel" class="shutdown-plan-type-panel" hidden>
+              <button type="button" data-statistics-order-type="标准计划" aria-pressed="false">标准计划</button>
+              <button type="button" data-statistics-order-type="长期计划" aria-pressed="false">长期计划</button>
             </div>
           </div>
           <div class="statistics-date-filter">
@@ -442,6 +486,7 @@
             <table class="statistics-table">
               <thead>
                 <tr>
+                  <th>计划类型</th>
                   <th>计划条数</th>
                   <th>总消耗进度</th>
                   <th>投放总金额</th>
@@ -465,6 +510,7 @@
               </thead>
               <tbody>
                 <tr data-order-type="标准计划">
+                  <td><div class="plan-type-tags"><span class="plan-type-tag standard">标准计划</span></div></td>
                   <td>6</td>
                   <td>62.40%</td>
                   <td>¥2,000.00</td>
@@ -486,6 +532,7 @@
                   <td>92</td>
                 </tr>
                 <tr data-order-type="长期计划">
+                  <td><div class="plan-type-tags"><span class="plan-type-tag long-term">长期计划</span></div></td>
                   <td>3</td>
                   <td>100.00%</td>
                   <td>¥1,500.00</td>
@@ -517,7 +564,15 @@
         <section class="finance-filter ui-panel" aria-label="财务报表筛选">
           <label class="finance-select"><select id="finance-account-filter" aria-label="投放号"><option value="">选择投放号</option><option>畅移小店</option></select></label>
           <label class="finance-select"><select id="finance-target-filter" aria-label="被投号"><option value="">选择被投号</option><option>东方甄选美丽生活</option></select></label>
-          <label class="finance-select plan-type-filter"><select id="finance-plan-type-filter" aria-label="计划类型"><option value="" selected disabled hidden>选择计划类型</option><option value="标准计划">标准计划</option><option value="长期计划">长期计划</option></select></label>
+          <div id="finance-plan-type-filter" class="shutdown-plan-type-filter finance-plan-type-filter">
+            <button id="finance-plan-type-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+              <span id="finance-plan-type-label">选择计划类型</span><span>⌄</span>
+            </button>
+            <div id="finance-plan-type-panel" class="shutdown-plan-type-panel" hidden>
+              <button type="button" data-finance-plan-type="标准计划" aria-pressed="false">标准计划</button>
+              <button type="button" data-finance-plan-type="长期计划" aria-pressed="false">长期计划</button>
+            </div>
+          </div>
           <div class="finance-date-filter"><span>统计时间</span><b>2026-06-16</b><i>-</i><b>2026-07-16</b><em aria-hidden="true">▣</em></div>
           <button id="finance-reset" class="finance-reset" type="button">重置</button>
         </section>
@@ -575,7 +630,15 @@
           <input id="short-video-note-filter" type="text" placeholder="输入备注名">
           <input id="short-video-description-filter" type="text" placeholder="输入短视频描述">
           <label class="short-video-select"><select id="short-video-target-filter" aria-label="被投号"><option value="">选择被投号</option><option>最好的交待</option><option>tel小小店非正式账号</option><option>李宁官方品牌店</option></select></label>
-          <label class="short-video-select plan-type-select"><select id="short-video-plan-type-filter" aria-label="计划类型"><option value="" selected disabled hidden>选择计划类型</option><option value="标准计划">标准计划</option><option value="长期计划">长期计划</option></select></label>
+          <div id="short-video-plan-type-filter" class="shutdown-plan-type-filter short-video-plan-type-filter">
+            <button id="short-video-plan-type-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+              <span id="short-video-plan-type-label">选择计划类型</span><span>⌄</span>
+            </button>
+            <div id="short-video-plan-type-panel" class="shutdown-plan-type-panel" hidden>
+              <button type="button" data-short-video-plan-type="标准计划" aria-pressed="false">标准计划</button>
+              <button type="button" data-short-video-plan-type="长期计划" aria-pressed="false">长期计划</button>
+            </div>
+          </div>
           <div class="short-video-date-filter"><span>订单创建</span><b>2026-06-17</b><i>-</i><b>2026-07-16</b><em aria-hidden="true">▣</em></div>
           <button id="short-video-reset" type="button">重置</button>
         </section>
@@ -647,7 +710,13 @@
           <button id="shutdown-reset" type="button">重置</button>
         </section>
         <section class="shutdown-list ui-panel">
-          <div class="shutdown-toolbar"><button id="create-shutdown-strategy" class="primary-button" type="button">新建关停策略</button><button id="shutdown-refresh" type="button" aria-label="刷新">↻</button></div>
+          <div class="shutdown-toolbar">
+            <button id="create-shutdown-strategy" class="primary-button" type="button">新建关停策略</button>
+            <div class="shutdown-toolbar-right">
+              <span>自动关停策略适用于标准/长期计划，创建计划时可选用对应类型策略，触发规则后自动关停订单。</span>
+              <button id="shutdown-refresh" type="button" aria-label="刷新">↻</button>
+            </div>
+          </div>
           <div class="shutdown-table-wrap">
             <table class="shutdown-table">
               <thead><tr><th>策略类型</th><th>策略名称</th><th>计划类型</th><th>策略规则</th><th>监控维度</th><th>监控方式</th><th>执行时段</th><th>创建者</th><th>创建时间</th><th>状态/操作</th></tr></thead>
@@ -688,20 +757,93 @@
     </aside>
   </div>
 
-  <div id="shutdown-strategy-modal" class="feature-modal" hidden>
-    <div class="shutdown-dialog" role="dialog" aria-modal="true" aria-labelledby="shutdown-dialog-title">
-      <header><h2 id="shutdown-dialog-title">新建关停策略</h2><button id="close-shutdown-modal" type="button">×</button></header>
+  <div id="shutdown-strategy-modal" class="feature-modal shutdown-drawer-layer" hidden>
+    <aside class="shutdown-dialog" role="dialog" aria-modal="true" aria-labelledby="shutdown-dialog-title">
+      <header><h2 id="shutdown-dialog-title">新建策略</h2><button id="close-shutdown-modal" type="button">×</button></header>
       <div class="shutdown-dialog-body">
-        <label><span><i>*</i>策略名称</span><input id="shutdown-strategy-name" type="text" placeholder="请输入策略名称"></label>
-        <label><span><i>*</i>计划类型</span><select id="shutdown-strategy-plan-type"><option value="">全部</option><option value="标准计划">标准计划</option><option value="长期计划">长期计划</option></select></label>
-        <label><span>策略类型</span><select id="shutdown-strategy-type"><option>自定义</option><option>亏损监控</option></select></label>
-        <label><span>监控维度</span><select><option>指定订单</option><option>投放号</option></select></label>
-        <label><span>策略规则</span><input id="shutdown-strategy-rule" type="text" value="消耗金额>1元"></label>
-        <label><span>监控方式</span><select><option>自动关停</option></select></label>
-        <label><span>执行时段</span><select><option>全天</option></select></label>
+        <label class="shutdown-form-row shutdown-name-row">
+          <span><i>*</i>策略名称</span>
+          <span class="shutdown-name-control"><input id="shutdown-strategy-name" type="text" maxlength="20" placeholder="请输入策略名称"><b><em id="shutdown-name-count">0</em>/20</b></span>
+        </label>
+
+        <label class="shutdown-form-row">
+          <span><i>*</i>计划类型</span>
+          <select id="shutdown-strategy-plan-type"><option value="">全部</option><option value="标准计划">标准计划</option><option value="长期计划">长期计划</option></select>
+        </label>
+
+        <div class="shutdown-form-row shutdown-dimension-row">
+          <span><i>*</i>监控维度</span>
+          <div class="shutdown-dimension-options">
+            <button class="is-selected" type="button" data-shutdown-dimension="指定订单">
+              <strong>指定订单</strong><small>新建投流订单时选用</small>
+            </button>
+            <button type="button" data-shutdown-dimension="指定投放号">
+              <strong>指定投放号</strong><small>整个账户下的所有计划，包括后续新增的计划</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="shutdown-form-row">
+          <span><i>*</i>监控方式</span>
+          <label class="shutdown-inline-check"><input type="checkbox" checked>自动关停</label>
+        </div>
+
+        <div class="shutdown-form-row">
+          <span><i>*</i>执行时段</span>
+          <div class="shutdown-inline-options">
+            <label><input type="radio" name="shutdown-period" checked>全天</label>
+            <label><input type="radio" name="shutdown-period">指定开始时间和结束时间</label>
+            <label><input type="radio" name="shutdown-period">指定多个时间段</label>
+          </div>
+        </div>
+
+        <div class="shutdown-form-row">
+          <span><i>*</i>策略规则</span>
+          <div class="shutdown-inline-options shutdown-strategy-options">
+            <label><input type="radio" name="shutdown-strategy-kind" value="自定义" checked>自定义</label>
+            <label><input type="radio" name="shutdown-strategy-kind" value="亏损监控">亏损监控</label>
+            <label><input type="radio" name="shutdown-strategy-kind" value="空耗监控">空耗监控</label>
+            <label><input type="radio" name="shutdown-strategy-kind" value="低消监控">低消监控</label>
+            <label><input type="radio" name="shutdown-strategy-kind" value="下播前监控">下播前监控</label>
+            <input id="shutdown-strategy-type" type="hidden" value="自定义">
+          </div>
+        </div>
+
+        <div class="shutdown-rule-panel">
+          <span>规则一</span>
+          <select><option>请选择条件</option><option>消耗金额</option><option>成交ROI</option><option>空耗值</option></select>
+          <select><option>请选择</option><option>大于</option><option>小于</option><option>等于</option></select>
+          <input id="shutdown-strategy-rule" type="text" placeholder="请输入">
+          <div class="shutdown-rule-actions"><span>最多可添加3个规则</span><button type="button">添加规则</button></div>
+        </div>
+
+        <div class="shutdown-rule-meta">
+          <div><span>规则关系：</span><label><input type="radio" name="shutdown-rule-relation" checked>以上规则需同时满足</label><label><input type="radio" name="shutdown-rule-relation">以上规则满足其一即可</label></div>
+          <p>检查频率：每1分钟更新 <b>【咨询升级】</b></p>
+          <p class="shutdown-warning">【注意】组合使用ROI、空耗值等关停条件时，请根据实际业务合理配置规则，避免误关停。</p>
+        </div>
+
+        <div class="shutdown-extra-row">
+          <span><i>*</i>卡成交</span>
+          <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
+          <span>成交订单</span><select><option>≥</option></select><input type="number" value="2"><span>单后，放弃自动关停</span>
+        </div>
+        <div class="shutdown-extra-row">
+          <span><i>*</i>卡支付/操作</span>
+          <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
+          <span>使用“电商成长卡”或操作过“加速起量”的订单，放弃自动关停</span>
+        </div>
+        <div class="shutdown-extra-row shutdown-extra-indent">
+          <span></span><button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
+          <span>使用“成本保障券”的订单，放弃自动关停</span>
+        </div>
+        <div class="shutdown-extra-row">
+          <span><i>*</i>状态</span>
+          <button class="shutdown-mini-switch is-on" type="button" aria-pressed="true"></button>
+        </div>
       </div>
       <footer><button id="cancel-shutdown-modal" class="modal-cancel-button" type="button">取消</button><button id="save-shutdown-strategy" class="modal-confirm-button" type="button">确定</button></footer>
-    </div>
+    </aside>
   </div>
 
   <div id="offline-reminder-modal" class="feature-modal" hidden>
@@ -958,7 +1100,7 @@
               </select>
             </label>
             <div id="stage-date-picker" class="stage-date-picker">
-            <button id="stage-date-trigger" class="stage-date-filter" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择7天">
+            <button id="stage-date-trigger" class="stage-date-filter" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择60个自然日">
               <span id="stage-date-start-label">2026-07-13</span><i>-</i><span id="stage-date-end-label">2026-07-17</span><b aria-hidden="true">▣</b>
             </button>
             <div id="stage-date-panel" class="stage-date-panel" hidden>
@@ -985,7 +1127,7 @@
           </div>
 
           <div class="stage-summary-metrics">
-            <div><span>消耗总金额</span><strong id="stage-total-spend">￥1,269.50</strong></div>
+            <div><span>总消耗金额</span><strong id="stage-total-spend">￥1,269.50</strong></div>
             <div><span>总成交金额</span><strong id="stage-total-order-amount">￥5,118.00</strong></div>
             <div><span>总成交订单数</span><strong id="stage-total-orders">69</strong></div>
             <div><span>总成交ROI</span><strong id="stage-total-roi">4.03</strong></div>
@@ -1001,7 +1143,6 @@
                     <button class="is-selected" type="button" data-stage-metric="spend" aria-pressed="true">消耗金额</button>
                     <button class="is-selected" type="button" data-stage-metric="exposure" aria-pressed="true">曝光数</button>
                     <button class="is-selected" type="button" data-stage-metric="views" aria-pressed="true">观看数</button>
-                    <button class="is-selected" type="button" data-stage-metric="actualEntries" aria-pressed="true">实际进入人数</button>
                     <button class="is-selected" type="button" data-stage-metric="clickUsers" aria-pressed="true">商品点击人数</button>
                     <button class="is-selected" type="button" data-stage-metric="clicks" aria-pressed="true">商品点击次数</button>
                     <button class="is-selected" type="button" data-stage-metric="clickCost" aria-pressed="true">商品点击成本</button>
@@ -1023,7 +1164,7 @@
             </div>
             <div class="stage-detail-table-wrap">
               <table class="stage-detail-table">
-                <thead><tr id="stage-detail-table-head"><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="date">统计日期<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="spend">消耗金额<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="exposure">曝光数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="views">观看数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="actualEntries">实际进入人数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="clickUsers">商品点击人数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="clicks">商品点击次数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="clickCost">商品点击成本<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="orders">下单订单数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="orderAmount">成交订单金额<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="roi">成交ROI<span>↕</span></button></th></tr></thead>
+                <thead><tr id="stage-detail-table-head"><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="date">统计日期<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="spend">消耗金额<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="exposure">曝光数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="views">观看数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="clickUsers">商品点击人数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="clicks">商品点击次数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="clickCost">商品点击成本<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="orders">下单订单数<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="orderAmount">成交订单金额<span>↕</span></button></th><th aria-sort="none"><button class="stage-sort-button" type="button" data-stage-sort="roi">成交ROI<span>↕</span></button></th></tr></thead>
                 <tbody id="stage-detail-table-body"></tbody>
               </table>
             </div>
@@ -1125,6 +1266,8 @@
       </div>
     </aside>
   </div>
+
+  <div id="plan-field-tooltip" class="plan-field-tooltip" role="tooltip" hidden></div>
 
   <script src="长期计划.js?v=20260720-1"></script>
 </body>
