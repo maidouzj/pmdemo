@@ -766,10 +766,14 @@
           <span class="shutdown-name-control"><input id="shutdown-strategy-name" type="text" maxlength="20" placeholder="请输入策略名称"><b><em id="shutdown-name-count">0</em>/20</b></span>
         </label>
 
-        <label class="shutdown-form-row">
+        <div class="shutdown-form-row">
           <span><i>*</i>计划类型</span>
-          <select id="shutdown-strategy-plan-type"><option value="">全部</option><option value="标准计划">标准计划</option><option value="长期计划">长期计划</option></select>
-        </label>
+          <div class="shutdown-plan-type-options">
+            <label><input type="radio" name="shutdown-form-plan-type" value="标准计划">标准计划</label>
+            <label><input type="radio" name="shutdown-form-plan-type" value="长期计划" checked>长期计划</label>
+          </div>
+          <input id="shutdown-strategy-plan-type" type="hidden" value="长期计划">
+        </div>
 
         <div class="shutdown-form-row shutdown-dimension-row">
           <span><i>*</i>监控维度</span>
@@ -780,6 +784,40 @@
             <button type="button" data-shutdown-dimension="指定投放号">
               <strong>指定投放号</strong><small>整个账户下的所有计划，包括后续新增的计划</small>
             </button>
+          </div>
+        </div>
+
+        <div id="shutdown-account-scope" class="shutdown-account-scope" hidden>
+          <label class="shutdown-form-row">
+            <span><i>*</i>投放号</span>
+            <select><option value="">请选择投放号</option><option>畅移小店</option><option>tel小小店非正式账号</option></select>
+          </label>
+          <div class="shutdown-form-row">
+            <span>订单提升目标</span>
+            <div class="shutdown-inline-options">
+              <label><input type="radio" name="shutdown-target-scope" value="all" checked>全部</label>
+              <label><input type="radio" name="shutdown-target-scope" value="partial">部分</label>
+              <select id="shutdown-target-select" aria-label="订单提升目标" hidden>
+                <option>直播间商品点击</option>
+                <option>直播间成交</option>
+                <option>7日ROI</option>
+                <option>直播间观众</option>
+                <option>直播间互动</option>
+                <option>直播间涨粉</option>
+              </select>
+            </div>
+          </div>
+          <div class="shutdown-form-row">
+            <span>订单加热素材</span>
+            <div class="shutdown-inline-options">
+              <label><input type="radio" name="shutdown-material-scope" value="all" checked>全部</label>
+              <label><input type="radio" name="shutdown-material-scope" value="partial">部分</label>
+              <select id="shutdown-material-select" aria-label="订单加热素材" hidden>
+                <option>直接加热直播间</option>
+                <option>短视频加热直播间</option>
+                <option>直接加热直播间+短视频加热直播间</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -801,39 +839,45 @@
           <span><i>*</i>策略规则</span>
           <div class="shutdown-inline-options shutdown-strategy-options">
             <label><input type="radio" name="shutdown-strategy-kind" value="自定义" checked>自定义</label>
-            <label><input type="radio" name="shutdown-strategy-kind" value="亏损监控">亏损监控</label>
-            <label><input type="radio" name="shutdown-strategy-kind" value="空耗监控">空耗监控</label>
-            <label><input type="radio" name="shutdown-strategy-kind" value="低消监控">低消监控</label>
-            <label><input type="radio" name="shutdown-strategy-kind" value="下播前监控">下播前监控</label>
+            <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="亏损监控">亏损监控</label>
+            <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="空耗监控">空耗监控</label>
+            <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="低消监控">低消监控</label>
+            <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="下播前监控">下播前监控</label>
             <input id="shutdown-strategy-type" type="hidden" value="自定义">
           </div>
         </div>
 
         <div class="shutdown-rule-panel">
           <span>规则一</span>
-          <select><option>请选择条件</option><option>消耗金额</option><option>成交ROI</option><option>空耗值</option></select>
-          <select><option>请选择</option><option>大于</option><option>小于</option><option>等于</option></select>
+          <select id="shutdown-condition-select"><option value="">请选择条件</option><option>实际加热时长</option><option>周期内消耗金额</option><option>总消耗金额</option><option>成交ROI</option></select>
+          <select><option value="">请选择</option><option value=">">&gt;</option><option value="≤">≤</option></select>
           <input id="shutdown-strategy-rule" type="text" placeholder="请输入">
+          <span id="shutdown-rule-unit" class="shutdown-rule-unit" hidden></span>
+          <span id="shutdown-query-period" class="shutdown-query-period" hidden>查询数据周期近 <input id="shutdown-query-period-days" type="number" min="1" value="1" aria-label="查询数据周期天数"> 天 <em>（1代表当日）</em></span>
           <div class="shutdown-rule-actions"><span>最多可添加3个规则</span><button type="button">添加规则</button></div>
         </div>
 
         <div class="shutdown-rule-meta">
           <div><span>规则关系：</span><label><input type="radio" name="shutdown-rule-relation" checked>以上规则需同时满足</label><label><input type="radio" name="shutdown-rule-relation">以上规则满足其一即可</label></div>
-          <p>检查频率：每1分钟更新 <b>【咨询升级】</b></p>
-          <p class="shutdown-warning">【注意】组合使用ROI、空耗值等关停条件时，请根据实际业务合理配置规则，避免误关停。</p>
+          <p>检查频率：每1小时检查一次</p>
         </div>
 
+        <div id="shutdown-restart-row" class="shutdown-extra-row shutdown-longterm-only">
+          <span>自动重启</span>
+          <button id="shutdown-restart-toggle" class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
+          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>关停后 <input id="shutdown-restart-hours" type="number" min="1" value="1" aria-label="自动重启间隔小时数"> 小时重新启动</span>
+        </div>
         <div class="shutdown-extra-row">
           <span><i>*</i>卡成交</span>
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>成交订单</span><select><option>≥</option></select><input type="number" value="2"><span>单后，放弃自动关停</span>
         </div>
-        <div class="shutdown-extra-row">
+        <div class="shutdown-extra-row shutdown-standard-only">
           <span><i>*</i>卡支付/操作</span>
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“电商成长卡”或操作过“加速起量”的订单，放弃自动关停</span>
         </div>
-        <div class="shutdown-extra-row shutdown-extra-indent">
+        <div class="shutdown-extra-row shutdown-extra-indent shutdown-standard-only">
           <span></span><button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“成本保障券”的订单，放弃自动关停</span>
         </div>

@@ -694,7 +694,7 @@ const columnGroups = [
   },
   {
     name: '投放消耗',
-    fields: ['今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额/进度']
+    fields: ['今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额']
   },
   {
     name: '互动效果',
@@ -721,7 +721,7 @@ const columnGroups = [
 
 // 列表和字段定义弹窗统一采用已确认的长期计划最终字段顺序。
 const businessColumns = [
-  '投放号', '每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额/进度',
+  '投放号', '每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额',
   '优先提升目标', '加热方式', '出价/目标ROI', '加热素材', '计划分组',
   '数据更新时间', '计划终止时间', '创建时间', '计划加热时长',
   '短视频评论次数', '总评论次数', '新增关注数', '总点赞次数', '直播间点赞次数', '短视频点赞次数',
@@ -757,11 +757,11 @@ const numberFields = new Set([
 
 let selectedColumnOrder = [...businessColumns];
 let draftColumnOrder = [...businessColumns];
-const sortablePlanFields = new Set(['每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额/进度']);
+const sortablePlanFields = new Set(['每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额']);
 const planFieldTooltips = {
   '今日消耗金额/进度': '今日自然日产生的消耗；进度＝今日消耗金额÷每日预算。',
   '周期内消耗金额/进度': '顶部“统计时间”范围内产生的消耗；进度＝周期内消耗金额÷周期内应投预算。',
-  '总消耗金额/进度': '计划开始加热至当前的累计消耗；进度＝总消耗金额÷计划总预算。'
+  '总消耗金额': '计划开始加热至当前的累计消耗。'
 };
 let activePlanSortField = '';
 let activePlanSortDirection = 'desc';
@@ -814,20 +814,19 @@ function renderBusinessCell(field, row) {
   if (field === '投放号') {
     return '<div>畅移小店</div><div class="online"><span></span>在线</div>';
   }
-  if (field === '今日消耗金额/进度' || field === '周期内消耗金额/进度' || field === '总消耗金额/进度') {
+  if (field === '总消耗金额') {
+    return `<div class="amount-value">￥${Number(row.totalSpend).toFixed(2)}</div>`;
+  }
+  if (field === '今日消耗金额/进度' || field === '周期内消耗金额/进度') {
     const statisticsStart = parseStatisticsDate(longTermStatisticsStartLabel.textContent.trim());
     const statisticsEnd = parseStatisticsDate(longTermStatisticsEndLabel.textContent.trim());
     const statisticsDays = Math.max(1, Math.round((statisticsEnd - statisticsStart) / 86400000) + 1);
     const amount = field === '今日消耗金额/进度'
       ? Number(row.todaySpend)
-      : field === '周期内消耗金额/进度'
-        ? Number(row.averageDailySpend) * statisticsDays
-        : Number(row.totalSpend);
+      : Number(row.averageDailySpend) * statisticsDays;
     const budget = field === '今日消耗金额/进度'
       ? Number(row.dailyBudget)
-      : field === '周期内消耗金额/进度'
-        ? Number(row.dailyBudget) * statisticsDays
-        : Number(row.dailyBudget) * Number(row.planDays);
+      : Number(row.dailyBudget) * statisticsDays;
     const amountText = amount.toFixed(2);
     const progressValue = Math.min(100, Math.max(0, budget ? (amount / budget) * 100 : 0));
     const progressText = `${progressValue.toFixed(2)}%`;
@@ -877,7 +876,7 @@ function getPlanFieldSortValue(field, row) {
     const statisticsDays = Math.max(1, Math.round((statisticsEnd - statisticsStart) / 86400000) + 1);
     return Number(row.averageDailySpend) * statisticsDays;
   }
-  if (field === '总消耗金额/进度') return Number(row.totalSpend);
+  if (field === '总消耗金额') return Number(row.totalSpend);
   return 0;
 }
 
@@ -2363,10 +2362,23 @@ const shutdownModal = document.querySelector('#shutdown-strategy-modal');
 const shutdownDialogTitle = document.querySelector('#shutdown-dialog-title');
 const shutdownNameInput = document.querySelector('#shutdown-strategy-name');
 const shutdownStrategyPlanType = document.querySelector('#shutdown-strategy-plan-type');
+const shutdownFormPlanTypeOptions = document.querySelectorAll('[name="shutdown-form-plan-type"]');
 const shutdownStrategyType = document.querySelector('#shutdown-strategy-type');
+const shutdownConditionSelect = document.querySelector('#shutdown-condition-select');
+const shutdownRuleUnit = document.querySelector('#shutdown-rule-unit');
+const shutdownQueryPeriod = document.querySelector('#shutdown-query-period');
 const shutdownStrategyRule = document.querySelector('#shutdown-strategy-rule');
 const shutdownNameCount = document.querySelector('#shutdown-name-count');
 const shutdownDimensionOptions = document.querySelectorAll('[data-shutdown-dimension]');
+const shutdownAccountScope = document.querySelector('#shutdown-account-scope');
+const shutdownTargetScopeOptions = document.querySelectorAll('[name="shutdown-target-scope"]');
+const shutdownMaterialScopeOptions = document.querySelectorAll('[name="shutdown-material-scope"]');
+const shutdownTargetSelect = document.querySelector('#shutdown-target-select');
+const shutdownMaterialSelect = document.querySelector('#shutdown-material-select');
+const shutdownStandardOnlySections = document.querySelectorAll('.shutdown-standard-only');
+const shutdownLongTermOnlySections = document.querySelectorAll('.shutdown-longterm-only');
+const shutdownRestartToggle = document.querySelector('#shutdown-restart-toggle');
+const shutdownRestartConfig = document.querySelector('#shutdown-restart-config');
 const shutdownStrategyKindOptions = document.querySelectorAll('[name="shutdown-strategy-kind"]');
 let editingShutdownIndex = -1;
 let selectedShutdownPlanType = '';
@@ -2393,22 +2405,86 @@ function closeShutdownPlanTypeFilter() {
   shutdownPlanTypeTrigger.setAttribute('aria-expanded', 'false');
 }
 
+function updateShutdownRuleUnit() {
+  const unit = shutdownConditionSelect.value === '实际加热时长'
+    ? '小时'
+    : ['周期内消耗金额', '总消耗金额'].includes(shutdownConditionSelect.value)
+      ? '元'
+      : '';
+  shutdownRuleUnit.textContent = unit;
+  shutdownRuleUnit.hidden = !unit;
+  shutdownQueryPeriod.hidden = shutdownConditionSelect.value !== '周期内消耗金额';
+}
+
+function updateShutdownRestartConfig() {
+  shutdownRestartConfig.hidden = !shutdownRestartToggle.classList.contains('is-on');
+}
+
+function updateShutdownStrategyFormByPlanType() {
+  const selectedPlanType = [...shutdownFormPlanTypeOptions].find((option) => option.checked)?.value || '长期计划';
+  const isLongTermPlan = selectedPlanType === '长期计划';
+  shutdownStrategyPlanType.value = selectedPlanType;
+  shutdownStandardOnlySections.forEach((section) => {
+    section.hidden = isLongTermPlan;
+  });
+  shutdownLongTermOnlySections.forEach((section) => {
+    section.hidden = !isLongTermPlan;
+  });
+  if (isLongTermPlan) {
+    shutdownStrategyKindOptions.forEach((option) => {
+      option.checked = option.value === '自定义';
+    });
+    shutdownStrategyType.value = '自定义';
+    shutdownConditionSelect.innerHTML = '<option value="">请选择条件</option><option>实际加热时长</option><option>周期内消耗金额</option><option>总消耗金额</option><option>成交ROI</option>';
+  } else {
+    shutdownConditionSelect.innerHTML = '<option value="">请选择条件</option><option>消耗金额</option><option>成交ROI</option><option>空耗值</option>';
+  }
+  updateShutdownRuleUnit();
+  updateShutdownRestartConfig();
+}
+
+function updateShutdownAccountScope() {
+  const activeDimension = document.querySelector('[data-shutdown-dimension].is-selected')?.dataset.shutdownDimension;
+  shutdownAccountScope.hidden = activeDimension !== '指定投放号';
+}
+
+function updateShutdownPartialScope(options, select) {
+  const selectedValue = [...options].find((option) => option.checked)?.value;
+  select.hidden = selectedValue !== 'partial';
+}
+
 function openShutdownModal(index = -1) {
   editingShutdownIndex = index;
   const row = index < 0 ? null : shutdownRows[index];
   shutdownDialogTitle.textContent = row ? '修改策略' : '新建策略';
   shutdownNameInput.value = row ? row.name : '';
   shutdownNameCount.textContent = String(shutdownNameInput.value.length);
-  shutdownStrategyPlanType.value = row && ['标准计划', '长期计划'].includes(row.planType) ? row.planType : '';
+  const formPlanType = row && ['标准计划', '长期计划'].includes(row.planType) ? row.planType : '长期计划';
+  shutdownFormPlanTypeOptions.forEach((option) => {
+    option.checked = option.value === formPlanType;
+  });
+  updateShutdownStrategyFormByPlanType();
   shutdownStrategyType.value = row ? row.strategyType : '自定义';
   shutdownStrategyKindOptions.forEach((option) => { option.checked = option.value === shutdownStrategyType.value; });
   if (![...shutdownStrategyKindOptions].some((option) => option.checked)) {
     shutdownStrategyKindOptions[0].checked = true;
     shutdownStrategyType.value = shutdownStrategyKindOptions[0].value;
   }
+  if (formPlanType === '长期计划') {
+    shutdownStrategyKindOptions.forEach((option) => { option.checked = option.value === '自定义'; });
+    shutdownStrategyType.value = '自定义';
+  }
   const activeDimension = row?.dimension === '投放号' ? '指定投放号' : '指定订单';
   shutdownDimensionOptions.forEach((option) => option.classList.toggle('is-selected', option.dataset.shutdownDimension === activeDimension));
+  updateShutdownAccountScope();
+  shutdownTargetScopeOptions.forEach((option) => { option.checked = option.value === 'all'; });
+  shutdownMaterialScopeOptions.forEach((option) => { option.checked = option.value === 'all'; });
+  updateShutdownPartialScope(shutdownTargetScopeOptions, shutdownTargetSelect);
+  updateShutdownPartialScope(shutdownMaterialScopeOptions, shutdownMaterialSelect);
   shutdownStrategyRule.value = row ? row.rule : '';
+  shutdownRestartToggle.classList.remove('is-on');
+  shutdownRestartToggle.setAttribute('aria-pressed', 'false');
+  updateShutdownRestartConfig();
   shutdownModal.hidden = false;
   shutdownNameInput.focus();
 }
@@ -2421,7 +2497,7 @@ shutdownModal.addEventListener('click', (event) => { if (event.target === shutdo
 document.querySelector('#save-shutdown-strategy').addEventListener('click', () => {
   const name = shutdownNameInput.value.trim();
   if (!name) { shutdownNameInput.focus(); return; }
-  const planType = shutdownStrategyPlanType.value || '标准计划、长期计划';
+  const planType = shutdownStrategyPlanType.value || '长期计划';
   const selectedDimension = document.querySelector('[data-shutdown-dimension].is-selected')?.dataset.shutdownDimension || '指定订单';
   const dimension = selectedDimension === '指定投放号' ? '投放号' : '指定订单';
   const rule = shutdownStrategyRule.value.trim() || '消耗金额>1元';
@@ -2486,7 +2562,16 @@ shutdownNameInput.addEventListener('input', () => {
 });
 shutdownDimensionOptions.forEach((option) => option.addEventListener('click', () => {
   shutdownDimensionOptions.forEach((candidate) => candidate.classList.toggle('is-selected', candidate === option));
+  updateShutdownAccountScope();
 }));
+shutdownTargetScopeOptions.forEach((option) => option.addEventListener('change', () => {
+  updateShutdownPartialScope(shutdownTargetScopeOptions, shutdownTargetSelect);
+}));
+shutdownMaterialScopeOptions.forEach((option) => option.addEventListener('change', () => {
+  updateShutdownPartialScope(shutdownMaterialScopeOptions, shutdownMaterialSelect);
+}));
+shutdownFormPlanTypeOptions.forEach((option) => option.addEventListener('change', updateShutdownStrategyFormByPlanType));
+shutdownConditionSelect.addEventListener('change', updateShutdownRuleUnit);
 shutdownStrategyKindOptions.forEach((option) => option.addEventListener('change', () => {
   if (option.checked) shutdownStrategyType.value = option.value;
 }));
@@ -2494,6 +2579,7 @@ document.querySelectorAll('.shutdown-mini-switch').forEach((button) => button.ad
   const nextOn = !button.classList.contains('is-on');
   button.classList.toggle('is-on', nextOn);
   button.setAttribute('aria-pressed', String(nextOn));
+  if (button === shutdownRestartToggle) updateShutdownRestartConfig();
 }));
 
 const deliveryAccountRows = [
