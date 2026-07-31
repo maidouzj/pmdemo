@@ -802,8 +802,11 @@
               <label><input type="radio" name="shutdown-target-scope" value="all" checked>全部</label>
               <label><input type="radio" name="shutdown-target-scope" value="partial">部分</label>
               <select id="shutdown-target-select" aria-label="订单提升目标" hidden>
+                <option>直播间净成交</option>
                 <option>直播间商品点击</option>
                 <option>直播间成交</option>
+                <option>净成交ROI</option>
+                <option>成交ROI</option>
                 <option>7日ROI</option>
                 <option>直播间观众</option>
                 <option>直播间互动</option>
@@ -827,7 +830,7 @@
 
         <div class="shutdown-form-row">
           <span><i>*</i>监控方式</span>
-          <label class="shutdown-inline-check"><input type="checkbox" checked>自动关停</label>
+          <label class="shutdown-inline-check"><input type="checkbox" checked>自动暂停</label>
         </div>
 
         <div class="shutdown-form-row">
@@ -859,7 +862,7 @@
 
         <div class="shutdown-rule-meta">
           <div><span>规则关系：</span><label><input type="radio" name="shutdown-rule-relation" checked>以上规则需同时满足</label><label><input type="radio" name="shutdown-rule-relation">以上规则满足其一即可</label></div>
-          <p>检查频率：每1小时检查一次</p>
+          <p>检查频率：每1分钟更新 <b>【咨询升级】</b></p>
         </div>
 
         <div id="shutdown-restart-row" class="shutdown-extra-row shutdown-longterm-only">
@@ -877,7 +880,7 @@
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“电商成长卡”或操作过“加速起量”的订单，放弃自动关停</span>
         </div>
-        <div class="shutdown-extra-row shutdown-extra-indent shutdown-standard-only">
+        <div class="shutdown-extra-row shutdown-extra-indent">
           <span></span><button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“成本保障券”的订单，放弃自动关停</span>
         </div>
