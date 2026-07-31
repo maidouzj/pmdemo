@@ -1452,7 +1452,7 @@ button {
 
 .effect-groups {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   margin-top: 18px;
 }
 
@@ -3356,6 +3356,7 @@ button {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  justify-content: center;
   gap: 0;
   padding: 0 0 4px;
   overflow-x: auto;
@@ -4829,19 +4830,24 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-inline-options select[hidden] { display: none; }
 .shutdown-strategy-options { gap: 18px; }
 .shutdown-standard-only[hidden] { display: none !important; }
+.shutdown-longterm-only[hidden] { display: none !important; }
 
-.shutdown-rule-panel { position: relative; min-height: 118px; display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 10px 90px; padding: 20px; background: #fffaf3; }
-.shutdown-rule-panel > span { height: 32px; display: flex; align-items: center; }
+.shutdown-rule-panel { position: relative; min-height: 118px; margin: 4px 0 10px 90px; padding: 20px 20px 60px; background: #fffaf3; }
+.shutdown-rule-list { display: flex; flex-direction: column; gap: 10px; }
+.shutdown-rule-row { display: flex; align-items: flex-start; gap: 10px; }
+.shutdown-rule-label { width: 48px; height: 32px; display: flex; align-items: center; flex: 0 0 48px; }
 .shutdown-rule-panel select,.shutdown-rule-panel input { height: 32px; padding: 0 12px; border: 1px solid #d6dce5; border-radius: 3px; background: #fff; }
-.shutdown-rule-panel select:first-of-type { width: 210px; }
-.shutdown-rule-panel select:nth-of-type(2) { width: 100px; }
-.shutdown-rule-panel > input { width: 150px; }
+.shutdown-rule-condition { width: 210px; }
+.shutdown-rule-operator { width: 100px; }
+.shutdown-rule-value { width: 150px; }
+.shutdown-rule-row select:disabled { color: #303846; background: #f5f6f8; opacity: 1; }
 .shutdown-rule-unit { height: 32px; display: flex; align-items: center; margin-left: -10px; padding: 0 10px; color: #475365; background: #f2f3f5; }
 .shutdown-rule-unit[hidden] { display: none; }
 .shutdown-query-period { height: 32px; display: inline-flex; align-items: center; gap: 8px; margin-left: 10px; white-space: nowrap; color: #303846; }
 .shutdown-query-period[hidden] { display: none; }
 .shutdown-query-period input { width: 58px; }
 .shutdown-query-period em { color: #303846; font-style: normal; }
+.shutdown-rule-remove { width: 24px; height: 32px; padding: 0; border: 0; color: #475365; background: transparent; font-size: 20px; cursor: pointer; }
 .shutdown-rule-actions { position: absolute; right: 20px; bottom: 18px; display: flex; align-items: center; gap: 12px; color: #4a5566; }
 .shutdown-rule-actions button { height: 32px; padding: 0 16px; border: 0; border-radius: 2px; color: #fff; background: #1769ff; cursor: pointer; }
 .shutdown-rule-meta { margin-left: 90px; line-height: 28px; }

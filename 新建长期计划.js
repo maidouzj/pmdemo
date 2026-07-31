@@ -1,6 +1,6 @@
 const countValue = document.querySelector('#plan-count');
 const orderCount = document.querySelector('#order-count');
-const orderTotal = document.querySelector('#order-total');
+const orderDailyPayment = document.querySelector('#order-daily-payment');
 const dailyBudgetOptions = document.querySelector('#daily-budget-options');
 const customDailyBudget = document.querySelector('#custom-daily-budget');
 const customBudgetRow = document.querySelector('.custom-budget-row');
@@ -21,9 +21,11 @@ const confirmPlanCount = document.querySelector('#confirm-plan-count');
 const confirmPriorityTarget = document.querySelector('#confirm-priority-target');
 const confirmDailyBudget = document.querySelector('#confirm-daily-budget');
 const confirmHeatingPeriod = document.querySelector('#confirm-heating-period');
+const confirmOrderPayment = document.querySelector('#confirm-order-payment');
 const planName = document.querySelector('#plan-name');
 const deliveryAccountName = document.querySelector('#delivery-account-name');
 const heatingAccount = document.querySelector('#heating-account');
+const orderHeatingAccount = document.querySelector('#order-heating-account');
 const heatingStartDate = document.querySelector('#heating-start-date');
 const heatingEndDate = document.querySelector('#heating-end-date');
 const directHeatingMaterial = document.querySelector('#direct-heating-material');
@@ -66,6 +68,9 @@ const closeAudienceTemplate = document.querySelector('#close-audience-template')
 const audienceTemplateSearch = document.querySelector('#audience-template-search');
 const audienceTemplateList = document.querySelector('#audience-template-list');
 const audienceTemplateEmpty = document.querySelector('#audience-template-empty');
+const paymentMethodInputs = document.querySelectorAll('input[name="payment-method"]');
+const combinationPaymentInputs = document.querySelectorAll('input[name="combination-payment"]');
+const combinationPaymentSummary = document.querySelector('#combination-payment-summary');
 
 let planCount = 1;
 let selectedAmount = Number(dailyBudgetOptions.querySelector('input[name="daily-budget"]:checked')?.value || 100);
@@ -107,7 +112,23 @@ const audienceTemplateOptions = [
 function updateOrderSummary() {
   countValue.textContent = String(planCount);
   orderCount.textContent = `${planCount}个`;
-  orderTotal.textContent = `￥${(selectedAmount * planCount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  orderDailyPayment.textContent = `￥${selectedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function syncCombinationPayment() {
+  const combinationPayment = document.querySelector('input[name="combination-payment"]:checked')?.value || 'none';
+  combinationPaymentSummary.hidden = combinationPayment === 'none';
+}
+
+function getOrderPaymentSummary() {
+  const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value || '微信豆';
+  const combinationPayment = document.querySelector('input[name="combination-payment"]:checked')?.value || 'none';
+  const combinationPaymentLabels = {
+    none: '不使用',
+    specified: '使用指定卡券',
+    recommended: '使用系统推荐卡券'
+  };
+  return `${paymentMethod} ｜ ${combinationPaymentLabels[combinationPayment]}`;
 }
 
 function setFieldValidation(control, errorElement, invalid) {
@@ -446,7 +467,12 @@ planName.addEventListener('input', () => setFieldValidation(planName, planNameEr
 heatingAccount.addEventListener('change', () => {
   setFieldValidation(heatingAccount.closest('.native-select'), heatingAccountError, false);
   accountWarningToast.hidden = true;
+  orderHeatingAccount.textContent = heatingAccount.value || '-';
 });
+combinationPaymentInputs.forEach((input) => input.addEventListener('change', syncCombinationPayment));
+paymentMethodInputs.forEach((input) => input.addEventListener('change', () => {
+  confirmOrderPayment.textContent = getOrderPaymentSummary();
+}));
 [heatingStartDate, heatingEndDate].forEach((input) => input.addEventListener('change', () => setFieldValidation(heatingPeriodControl, heatingPeriodError, false)));
 
 document.querySelectorAll('.top-nav a[href="#"], .icon-rail a[href="#"]').forEach((link) => {
@@ -465,6 +491,7 @@ submitButton.addEventListener('click', () => {
   confirmPriorityTarget.textContent = priorityTarget.options[priorityTarget.selectedIndex].textContent;
   confirmDailyBudget.textContent = `￥${selectedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   confirmHeatingPeriod.textContent = `${heatingStartDate.value} - ${heatingEndDate.value}`;
+  confirmOrderPayment.textContent = getOrderPaymentSummary();
   confirmCreateLayer.hidden = false;
 });
 
@@ -515,3 +542,4 @@ syncCustomBudgetVisibility();
 syncAuthorCustomerVisibility();
 renderShutdownStrategyTags();
 updateOrderSummary();
+syncCombinationPayment();

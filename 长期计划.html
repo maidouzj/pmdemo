@@ -271,6 +271,14 @@
               <div class="effect-item"><span>转化成本 <span class="help-dot">?</span></span><i aria-hidden="true"></i></div>
               <div class="effect-item"><span>GPM <span class="help-dot">?</span></span><i aria-hidden="true"></i></div>
             </div>
+            <div class="effect-group effect-group-deal">
+              <h3><span></span>成交表现</h3>
+              <div class="effect-item"><span>付款优惠券</span><span>¥0.00</span></div>
+              <div class="effect-item"><span>退款优惠券</span><span>¥0.00</span></div>
+              <div class="effect-item"><span>预期保障券消耗</span><span>¥0.00</span></div>
+              <div class="effect-item"><span>流量点差值</span><span>¥0.00</span></div>
+              <div class="effect-item"><span>减券消耗ROI <span class="help-dot">?</span></span><span>0</span></div>
+            </div>
             <div class="effect-group effect-group-roi">
               <h3><span></span>ROI表现</h3>
               <div class="effect-item"><span>补贴返券金额</span><span>¥0.00</span></div>
@@ -769,10 +777,10 @@
         <div class="shutdown-form-row">
           <span><i>*</i>计划类型</span>
           <div class="shutdown-plan-type-options">
-            <label><input type="radio" name="shutdown-form-plan-type" value="标准计划">标准计划</label>
-            <label><input type="radio" name="shutdown-form-plan-type" value="长期计划" checked>长期计划</label>
+            <label><input type="radio" name="shutdown-form-plan-type" value="标准计划" checked>标准计划</label>
+            <label><input type="radio" name="shutdown-form-plan-type" value="长期计划">长期计划</label>
           </div>
-          <input id="shutdown-strategy-plan-type" type="hidden" value="长期计划">
+          <input id="shutdown-strategy-plan-type" type="hidden" value="标准计划">
         </div>
 
         <div class="shutdown-form-row shutdown-dimension-row">
@@ -841,19 +849,15 @@
             <label><input type="radio" name="shutdown-strategy-kind" value="自定义" checked>自定义</label>
             <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="亏损监控">亏损监控</label>
             <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="空耗监控">空耗监控</label>
-            <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="低消监控">低消监控</label>
+            <label class="shutdown-longterm-only" hidden><input type="radio" name="shutdown-strategy-kind" value="亏损/空耗监控">亏损/空耗监控</label>
+            <label><input type="radio" name="shutdown-strategy-kind" value="低消监控">低消监控</label>
             <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="下播前监控">下播前监控</label>
             <input id="shutdown-strategy-type" type="hidden" value="自定义">
           </div>
         </div>
 
-        <div class="shutdown-rule-panel">
-          <span>规则一</span>
-          <select id="shutdown-condition-select"><option value="">请选择条件</option><option>实际加热时长</option><option>周期内消耗金额</option><option>总消耗金额</option><option>成交ROI</option></select>
-          <select><option value="">请选择</option><option value=">">&gt;</option><option value="≤">≤</option></select>
-          <input id="shutdown-strategy-rule" type="text" placeholder="请输入">
-          <span id="shutdown-rule-unit" class="shutdown-rule-unit" hidden></span>
-          <span id="shutdown-query-period" class="shutdown-query-period" hidden>查询数据周期近 <input id="shutdown-query-period-days" type="number" min="1" value="1" aria-label="查询数据周期天数"> 天 <em>（1代表当日）</em></span>
+        <div id="shutdown-rule-panel" class="shutdown-rule-panel">
+          <div id="shutdown-rule-list" class="shutdown-rule-list"></div>
           <div class="shutdown-rule-actions"><span>最多可添加3个规则</span><button type="button">添加规则</button></div>
         </div>
 
@@ -1082,16 +1086,17 @@
         <div class="drawer-panel active" data-drawer-panel="plan-detail">
           <h3>加热数据</h3>
           <div class="drawer-metrics">
-            <div class="drawer-metric success"><span>总成交ROI</span><strong>0.00</strong></div>
+            <div class="drawer-metric success"><span>成交ROI</span><strong>0.00</strong></div>
             <div class="drawer-metric"><span>总成交金额</span><strong>¥ 0.00</strong></div>
             <div class="drawer-metric"><span>总成交订单数</span><strong>0</strong></div>
             <div class="drawer-metric"><span>平均客单价</span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric danger"><span>当场下单 ROI</span><strong>0.00</strong></div>
+            <div class="drawer-metric"><span class="drawer-metric-label-with-help">空耗值 <i class="help-dot effect-help" tabindex="0" aria-label="空耗值=累计广告消耗-（广告出价×累计转化数）" data-tooltip="空耗值=累计广告消耗-（广告出价×累计转化数）">?</i></span><strong>¥ 0.00</strong></div>
+            <div class="drawer-metric danger"><span>下单ROI</span><strong>0.00</strong></div>
             <div class="drawer-metric"><span>当场下单金额</span><strong>¥ 0.00</strong></div>
             <div class="drawer-metric"><span>当场下单订单数</span><strong>0</strong></div>
             <div class="drawer-metric"><span>总成交/下单金额比</span><strong>0.00 %</strong></div>
-            <div class="drawer-metric"><span class="drawer-metric-label-with-help">空耗值 <i class="help-dot effect-help" tabindex="0" aria-label="空耗值=累计广告消耗-（广告出价×累计转化数）" data-tooltip="空耗值=累计广告消耗-（广告出价×累计转化数）">?</i></span><strong>¥ 0.00</strong></div>
             <div class="drawer-metric"><span>点击成本</span><strong>¥ 0.00</strong></div>
+            <div class="drawer-metric"><span class="drawer-metric-label-with-help">减券消耗ROI <i class="help-dot effect-help" tabindex="0" aria-label="减券消耗ROI = 总成交金额 /（总消耗金额 - 预期保障券消耗 + 流量点差值）" data-tooltip="减券消耗ROI = 总成交金额 /（总消耗金额 - 预期保障券消耗 + 流量点差值）">?</i></span><strong>0.00</strong></div>
             <div class="drawer-metric"><span>商品点击次数</span><strong>0</strong></div>
             <div class="drawer-metric"><span>商品点击人数</span><strong>0</strong></div>
             <div class="drawer-metric"><span>商品点击率</span><strong>0.00 %</strong></div>
