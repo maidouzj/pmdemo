@@ -694,7 +694,7 @@ const columnGroups = [
   },
   {
     name: '投放消耗',
-    fields: ['今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额']
+    fields: ['今日消耗金额/进度', '周期内消耗金额/进度']
   },
   {
     name: '互动效果',
@@ -721,7 +721,7 @@ const columnGroups = [
 
 // 列表和字段定义弹窗统一采用已确认的长期计划最终字段顺序。
 const businessColumns = [
-  '投放号', '每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额',
+  '投放号', '每日预算', '今日消耗金额/进度', '周期内消耗金额/进度',
   '优先提升目标', '加热方式', '出价/目标ROI', '加热素材', '计划分组',
   '数据更新时间', '计划终止时间', '创建时间', '计划加热时长',
   '短视频评论次数', '总评论次数', '新增关注数', '总点赞次数', '直播间点赞次数', '短视频点赞次数',
@@ -757,11 +757,10 @@ const numberFields = new Set([
 
 let selectedColumnOrder = [...businessColumns];
 let draftColumnOrder = [...businessColumns];
-const sortablePlanFields = new Set(['每日预算', '今日消耗金额/进度', '周期内消耗金额/进度', '总消耗金额']);
+const sortablePlanFields = new Set(['每日预算', '今日消耗金额/进度', '周期内消耗金额/进度']);
 const planFieldTooltips = {
   '今日消耗金额/进度': '今日自然日产生的消耗；进度＝今日消耗金额÷每日预算。',
-  '周期内消耗金额/进度': '顶部“统计时间”范围内产生的消耗；进度＝周期内消耗金额÷周期内应投预算。',
-  '总消耗金额': '计划开始加热至当前的累计消耗。'
+  '周期内消耗金额/进度': '顶部“统计时间”范围内产生的消耗；进度＝周期内消耗金额÷周期内应投预算。'
 };
 let activePlanSortField = '';
 let activePlanSortDirection = 'desc';
@@ -813,9 +812,6 @@ function getFieldValue(field, row) {
 function renderBusinessCell(field, row) {
   if (field === '投放号') {
     return '<div>畅移小店</div><div class="online"><span></span>在线</div>';
-  }
-  if (field === '总消耗金额') {
-    return `<div class="amount-value">￥${Number(row.totalSpend).toFixed(2)}</div>`;
   }
   if (field === '今日消耗金额/进度' || field === '周期内消耗金额/进度') {
     const statisticsStart = parseStatisticsDate(longTermStatisticsStartLabel.textContent.trim());
@@ -876,7 +872,6 @@ function getPlanFieldSortValue(field, row) {
     const statisticsDays = Math.max(1, Math.round((statisticsEnd - statisticsStart) / 86400000) + 1);
     return Number(row.averageDailySpend) * statisticsDays;
   }
-  if (field === '总消耗金额') return Number(row.totalSpend);
   return 0;
 }
 
@@ -2340,16 +2335,17 @@ document.querySelectorAll('.short-video-pagination .page-number').forEach((butto
 renderShortVideoTable();
 
 const shutdownRows = [
-  { strategyType: '亏损监控', name: '或者', planType: '标准计划', rule: '消耗金额>3元或无阶段商品点击时长>=32分钟', dimension: '指定订单', method: '自动关停', period: '全天', creator: '杨乔测试', createdAt: '2026-06-10 14:39:36', enabled: true },
+  { strategyType: '亏损监控', name: '或者', planType: '标准计划', rule: '消耗金额>3元（近1天）或无阶段商品点击时长>=32分钟', dimension: '指定订单', method: '自动关停', period: '全天', creator: '杨乔测试', createdAt: '2026-06-10 14:39:36', enabled: true },
   { strategyType: '自定义', name: '44', planType: '长期计划', rule: '空耗值>2元', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-06-09 17:22:21', enabled: true },
-  { strategyType: '自定义', name: '2.8关停回归', planType: '标准计划', rule: '无阶段商品点击时长>=14分钟或消耗金额>0.1元', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-03-30 17:32:32', enabled: true },
-  { strategyType: '自定义', name: '（勿关）测试账号关停兜底策略', planType: '长期计划', rule: '消耗金额>1元', dimension: '投放号', method: '自动关停', period: '全天', creator: '师文科', createdAt: '2026-03-27 15:53:35', enabled: false },
-  { strategyType: '自定义', name: '关停逻辑回归', planType: '标准计划', rule: 'ROI<0.5', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-03-12 15:48:48', enabled: true },
+  { strategyType: '自定义', name: '2.8关停回归', planType: '标准计划', rule: '无阶段商品点击时长>=14分钟或消耗金额>0.1元（近1天）', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-03-30 17:32:32', enabled: true },
+  { strategyType: '自定义', name: '（勿关）测试账号关停兜底策略', planType: '长期计划', rule: '消耗金额>1元（近1天）', dimension: '投放号', method: '自动关停', period: '全天', creator: '师文科', createdAt: '2026-03-27 15:53:35', enabled: false },
+  { strategyType: '自定义', name: '关停逻辑回归', planType: '标准计划', rule: 'ROI<0.5（近1天）', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-03-12 15:48:48', enabled: true },
   { strategyType: '自定义', name: '核心隐藏2', planType: '长期计划', rule: '空耗值>2元且成交订单数<2单', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-03-10 11:01:20', enabled: false },
   { strategyType: '自定义', name: '核心功能隐藏', planType: '标准计划', rule: '无阶段商品点击时长>2分钟且存在阶段消耗>1元', dimension: '指定订单', method: '自动关停', period: '全天', creator: '高良测试', createdAt: '2026-03-09 14:22:58', enabled: false }
 ];
 
 const shutdownTableBody = document.querySelector('#shutdown-table-body');
+const shutdownRuleTooltip = document.querySelector('#shutdown-rule-tooltip');
 const shutdownNameFilter = document.querySelector('#shutdown-name-filter');
 const shutdownPlanTypeFilter = document.querySelector('#shutdown-plan-type-filter');
 const shutdownPlanTypeTrigger = document.querySelector('#shutdown-plan-type-trigger');
@@ -2357,7 +2353,6 @@ const shutdownPlanTypeLabel = document.querySelector('#shutdown-plan-type-label'
 const shutdownPlanTypePanel = document.querySelector('#shutdown-plan-type-panel');
 const shutdownPlanTypeOptions = shutdownPlanTypePanel.querySelectorAll('[data-shutdown-plan-type]');
 const shutdownResetButton = document.querySelector('#shutdown-reset');
-const shutdownRefreshButton = document.querySelector('#shutdown-refresh');
 const shutdownTotal = document.querySelector('#shutdown-total');
 const shutdownModal = document.querySelector('#shutdown-strategy-modal');
 const shutdownDialogTitle = document.querySelector('#shutdown-dialog-title');
@@ -2390,10 +2385,49 @@ function renderShutdownTable() {
     (!selectedShutdownPlanType || row.planType.includes(selectedShutdownPlanType))
   );
   shutdownTableBody.innerHTML = rows.map(({ row, index }) => `
-    <tr><td>${row.strategyType}</td><td>${escapeAudienceText(row.name)}</td><td>${renderPlanTypeTags(row.planType)}</td><td title="${escapeAudienceText(row.rule)}">${escapeAudienceText(row.rule)}</td><td>${row.dimension}</td><td>${row.method}</td><td>${row.period}</td><td>${row.creator}</td><td>${row.createdAt}</td><td><button class="shutdown-switch${row.enabled ? ' is-on' : ''}" type="button" data-shutdown-toggle="${index}"></button><div><button class="shutdown-action" type="button" data-shutdown-edit="${index}">修改</button><button class="shutdown-action is-delete" type="button" data-shutdown-delete="${index}">删除</button></div></td></tr>
+    <tr><td>${row.strategyType}</td><td>${escapeAudienceText(row.name)}</td><td>${renderPlanTypeTags(row.planType)}</td><td><span class="shutdown-rule-text" tabindex="0" aria-label="${escapeAudienceText(row.rule)}" data-tooltip="${escapeAudienceText(row.rule)}">${escapeAudienceText(row.rule)}</span></td><td>${row.dimension}</td><td>${row.method}</td><td>${row.period}</td><td>${row.creator}</td><td>${row.createdAt}</td><td><button class="shutdown-switch${row.enabled ? ' is-on' : ''}" type="button" data-shutdown-toggle="${index}"></button><div><button class="shutdown-action" type="button" data-shutdown-edit="${index}">修改</button><button class="shutdown-action is-delete" type="button" data-shutdown-delete="${index}">删除</button></div></td></tr>
   `).join('');
   shutdownTotal.textContent = keyword || selectedShutdownPlanType ? `共 ${rows.length} 条` : '共 65 条';
 }
+
+function showShutdownRuleTooltip(target) {
+  shutdownRuleTooltip.textContent = target.dataset.tooltip;
+  shutdownRuleTooltip.hidden = false;
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = shutdownRuleTooltip.getBoundingClientRect();
+  const preferredLeft = targetRect.left + targetRect.width / 2 - tooltipRect.width / 2;
+  const left = Math.min(window.innerWidth - tooltipRect.width - 12, Math.max(12, preferredLeft));
+  const top = Math.max(12, targetRect.top - tooltipRect.height - 8);
+  const arrowLeft = Math.min(tooltipRect.width - 12, Math.max(12, targetRect.left + targetRect.width / 2 - left));
+  shutdownRuleTooltip.style.left = `${left}px`;
+  shutdownRuleTooltip.style.top = `${top}px`;
+  shutdownRuleTooltip.style.setProperty('--shutdown-tooltip-arrow-left', `${arrowLeft}px`);
+}
+
+function hideShutdownRuleTooltip() {
+  shutdownRuleTooltip.hidden = true;
+}
+
+shutdownTableBody.addEventListener('mouseover', (event) => {
+  const rule = event.target.closest('.shutdown-rule-text');
+  if (rule) showShutdownRuleTooltip(rule);
+});
+
+shutdownTableBody.addEventListener('mouseout', (event) => {
+  const rule = event.target.closest('.shutdown-rule-text');
+  if (rule && !rule.contains(event.relatedTarget)) hideShutdownRuleTooltip();
+});
+
+shutdownTableBody.addEventListener('focusin', (event) => {
+  const rule = event.target.closest('.shutdown-rule-text');
+  if (rule) showShutdownRuleTooltip(rule);
+});
+
+shutdownTableBody.addEventListener('focusout', (event) => {
+  if (event.target.closest('.shutdown-rule-text')) hideShutdownRuleTooltip();
+});
+
+window.addEventListener('scroll', hideShutdownRuleTooltip, true);
 
 function updateShutdownPlanTypeLabel() {
   shutdownPlanTypeLabel.textContent = selectedShutdownPlanType || '选择计划类型';
@@ -2615,7 +2649,6 @@ shutdownResetButton.addEventListener('click', () => {
   document.querySelectorAll('.shutdown-filter select').forEach((select) => { select.selectedIndex = 0; });
   renderShutdownTable();
 });
-shutdownRefreshButton.addEventListener('click', () => { shutdownRefreshButton.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 420 }); renderShutdownTable(); });
 document.querySelectorAll('.shutdown-tabs button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.shutdown-tabs button').forEach((item) => item.classList.toggle('active', item === button)); }));
 
 shutdownNameInput.addEventListener('input', () => {
@@ -2672,22 +2705,25 @@ const deliveryAccountRows = [
 
 const deliveryAccountTableBody = document.querySelector('#delivery-account-table-body');
 const deliveryAccountNameFilter = document.querySelector('#delivery-account-name-filter');
+const deliveryAccountNoteFilter = document.querySelector('#delivery-account-note-filter');
 const deliveryAccountStatusFilter = document.querySelector('#delivery-account-status-filter');
 const offlineReminderModal = document.querySelector('#offline-reminder-modal');
 
 function renderDeliveryAccountTable() {
   const keyword = deliveryAccountNameFilter.value.trim().toLowerCase();
+  const noteKeyword = deliveryAccountNoteFilter.value.trim().toLowerCase();
   const status = deliveryAccountStatusFilter.value;
-  const rows = deliveryAccountRows.filter((row) => (!keyword || row.name.toLowerCase().includes(keyword)) && (!status || row.status === status));
+  const rows = deliveryAccountRows.filter((row) => (!keyword || row.name.toLowerCase().includes(keyword)) && (!noteKeyword || row.note.toLowerCase().includes(noteKeyword)) && (!status || row.status === status));
   deliveryAccountTableBody.innerHTML = rows.map((row) => `
     <tr><td><div class="delivery-account-name"><span class="delivery-account-avatar">${row.name.slice(0, 1)}</span><span>${escapeAudienceText(row.name)}</span></div></td><td>${escapeAudienceText(row.note)}　✎</td><td>${row.kind}</td><td><span class="${row.status === '在线' ? 'account-online' : 'account-offline'}">${row.status}</span></td><td>${row.countdown}</td><td class="delivery-account-balance">${row.balance}</td><td class="delivery-account-partner">合作作者：${row.partners}人<br><button class="delivery-account-link is-orange" type="button">详情</button></td><td>${row.login}</td><td><button class="delivery-account-link" type="button">重新授权</button>${row.status === '在线' ? '<button class="delivery-account-link" type="button">取消授权</button><button class="delivery-account-link" type="button">分身登录</button>' : ''}</td></tr>
   `).join('');
-  document.querySelector('#delivery-account-total').textContent = keyword || status ? `共 ${rows.length} 条` : '共 41 条';
+  document.querySelector('#delivery-account-total').textContent = keyword || noteKeyword || status ? `共 ${rows.length} 条` : '共 41 条';
 }
 
 deliveryAccountNameFilter.addEventListener('input', renderDeliveryAccountTable);
+deliveryAccountNoteFilter.addEventListener('input', renderDeliveryAccountTable);
 deliveryAccountStatusFilter.addEventListener('change', renderDeliveryAccountTable);
-document.querySelector('#delivery-account-reset').addEventListener('click', () => { deliveryAccountNameFilter.value = ''; deliveryAccountStatusFilter.value = ''; renderDeliveryAccountTable(); });
+document.querySelector('#delivery-account-reset').addEventListener('click', () => { deliveryAccountNameFilter.value = ''; deliveryAccountNoteFilter.value = ''; deliveryAccountStatusFilter.value = ''; renderDeliveryAccountTable(); });
 document.querySelector('#delivery-account-refresh').addEventListener('click', (event) => { event.currentTarget.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 420 }); renderDeliveryAccountTable(); });
 
 function closeOfflineReminder() { offlineReminderModal.hidden = true; }

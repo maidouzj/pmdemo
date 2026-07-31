@@ -1,4 +1,3 @@
-const countValue = document.querySelector('#plan-count');
 const orderCount = document.querySelector('#order-count');
 const orderDailyPayment = document.querySelector('#order-daily-payment');
 const dailyBudgetOptions = document.querySelector('#daily-budget-options');
@@ -25,6 +24,8 @@ const confirmOrderPayment = document.querySelector('#confirm-order-payment');
 const planName = document.querySelector('#plan-name');
 const deliveryAccountName = document.querySelector('#delivery-account-name');
 const heatingAccount = document.querySelector('#heating-account');
+const heatingAccountTrigger = document.querySelector('#open-heating-room');
+const heatingRoomValue = document.querySelector('#heating-room-value');
 const orderHeatingAccount = document.querySelector('#order-heating-account');
 const heatingStartDate = document.querySelector('#heating-start-date');
 const heatingEndDate = document.querySelector('#heating-end-date');
@@ -71,14 +72,26 @@ const audienceTemplateEmpty = document.querySelector('#audience-template-empty')
 const paymentMethodInputs = document.querySelectorAll('input[name="payment-method"]');
 const combinationPaymentInputs = document.querySelectorAll('input[name="combination-payment"]');
 const combinationPaymentSummary = document.querySelector('#combination-payment-summary');
+const heatingRoomLayer = document.querySelector('#heating-room-layer');
+const closeHeatingRoom = document.querySelector('#close-heating-room');
+const heatingRoomSearch = document.querySelector('#heating-room-search');
+const heatingRoomSearchCount = document.querySelector('#heating-room-search-count');
+const heatingRoomList = document.querySelector('#heating-room-list');
+const heatingRoomEmpty = document.querySelector('#heating-room-empty');
 
-let planCount = 1;
+const planCount = 1;
 let selectedAmount = Number(dailyBudgetOptions.querySelector('input[name="daily-budget"]:checked')?.value || 100);
 let authorCustomerValue = 'all';
 let pendingAuthorCustomerValue = null;
 let authorCustomerConfirmed = false;
 const selectedVideoIds = new Set();
 let draftSelectedVideoIds = new Set();
+const heatingRoomOptions = [
+  { name: 'ANTA安踏', avatar: '安', color: '#e53935', verified: true, live: true },
+  { name: '李宁官方品牌店', avatar: '李', color: '#ef3340', verified: true },
+  { name: '最好的交付', avatar: '交', color: '#7d9bd1' },
+  { name: 'tel小小店非正式账号', avatar: '店', color: '#d89c26' }
+];
 const videoOptions = [
   { id: 'video-1', name: '润喉糖', description: '润喉清凉', cy: 'CY100004906767', tag: '13', value: '未投放', time: '2026-06-17 15:27:19', uploader: '高良测试', thumb: 'video-thumb-1' },
   { id: 'video-2', name: '榴莲 - 副本 (2)', description: '榴莲小店查看', cy: 'CY100004824029', tag: '--', value: '低效', time: '2026-06-08 18:13:34', uploader: '高良测试', thumb: 'video-thumb-2' },
@@ -110,7 +123,6 @@ const audienceTemplateOptions = [
 ];
 
 function updateOrderSummary() {
-  countValue.textContent = String(planCount);
   orderCount.textContent = `${planCount}个`;
   orderDailyPayment.textContent = `￥${selectedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -131,6 +143,33 @@ function getOrderPaymentSummary() {
   return `${paymentMethod} ｜ ${combinationPaymentLabels[combinationPayment]}`;
 }
 
+function renderHeatingRooms() {
+  const keyword = heatingRoomSearch.value.trim().toLowerCase();
+  const visibleRooms = heatingRoomOptions.filter((room) => room.name.toLowerCase().includes(keyword));
+  heatingRoomSearchCount.textContent = `${heatingRoomSearch.value.length}/50`;
+  heatingRoomList.innerHTML = visibleRooms.map((room) => `
+    <div class="heating-room-row">
+      <i class="heating-room-avatar" style="--room-color:${room.color}">${room.avatar}</i>
+      <strong>${room.name}</strong>
+      ${room.verified ? '<span class="heating-room-verified" aria-label="已认证">●</span>' : ''}
+      ${room.live ? '<span class="heating-room-live">● 直播中</span>' : ''}
+      <button type="button" data-select-heating-room="${room.name}">选择</button>
+    </div>
+  `).join('');
+  heatingRoomEmpty.hidden = visibleRooms.length > 0;
+}
+
+function openHeatingRoomDialog() {
+  heatingRoomSearch.value = '';
+  renderHeatingRooms();
+  heatingRoomLayer.hidden = false;
+  heatingRoomSearch.focus();
+}
+
+function hideHeatingRoomDialog() {
+  heatingRoomLayer.hidden = true;
+}
+
 function setFieldValidation(control, errorElement, invalid) {
   control.classList.toggle('is-error-control', invalid);
   errorElement.hidden = !invalid;
@@ -147,7 +186,7 @@ function validateCreateForm() {
   const invalidShortVideo = shortVideoHeatingMaterial.checked && selectedVideoIds.size === 0;
 
   setFieldValidation(planName, planNameError, invalidPlanName);
-  setFieldValidation(heatingAccount.closest('.native-select'), heatingAccountError, invalidHeatingAccount);
+  setFieldValidation(heatingAccountTrigger, heatingAccountError, invalidHeatingAccount);
   setFieldValidation(budgetControl, dailyBudgetError, invalidBudget);
   setFieldValidation(heatingPeriodControl, heatingPeriodError, invalidPeriod);
   setFieldValidation(heatingMaterialControl, heatingMaterialError, invalidMaterial);
@@ -155,7 +194,7 @@ function validateCreateForm() {
 
   const firstInvalidControl = [
     invalidPlanName && planName,
-    invalidHeatingAccount && heatingAccount,
+    invalidHeatingAccount && heatingAccountTrigger,
     invalidBudget && budgetControl,
     invalidPeriod && heatingStartDate,
     invalidMaterial && directHeatingMaterial,
@@ -221,13 +260,6 @@ audienceTemplateList.addEventListener('click', (event) => {
 
 audienceTemplateLayer.addEventListener('click', (event) => {
   if (event.target === audienceTemplateLayer) hideAudienceTemplate();
-});
-
-document.querySelectorAll('[data-step]').forEach((button) => {
-  button.addEventListener('click', () => {
-    planCount = Math.min(99, Math.max(1, planCount + Number(button.dataset.step)));
-    updateOrderSummary();
-  });
 });
 
 dailyBudgetOptions.addEventListener('change', (event) => {
@@ -378,11 +410,11 @@ directHeatingMaterial.addEventListener('change', () => setFieldValidation(heatin
 
 openVideoSelector.addEventListener('click', () => {
   if (!heatingAccount.value) {
-    setFieldValidation(heatingAccount.closest('.native-select'), heatingAccountError, true);
+    setFieldValidation(heatingAccountTrigger, heatingAccountError, true);
     accountWarningToast.hidden = false;
     window.clearTimeout(accountWarningToast.hideTimer);
     accountWarningToast.hideTimer = window.setTimeout(() => { accountWarningToast.hidden = true; }, 1800);
-    heatingAccount.focus();
+    heatingAccountTrigger.focus();
     return;
   }
   draftSelectedVideoIds = new Set(selectedVideoIds);
@@ -465,9 +497,24 @@ confirmVideoSelector.addEventListener('click', () => {
 
 planName.addEventListener('input', () => setFieldValidation(planName, planNameError, false));
 heatingAccount.addEventListener('change', () => {
-  setFieldValidation(heatingAccount.closest('.native-select'), heatingAccountError, false);
+  setFieldValidation(heatingAccountTrigger, heatingAccountError, false);
   accountWarningToast.hidden = true;
+  heatingRoomValue.textContent = heatingAccount.value || '请选择加热直播间';
+  heatingAccountTrigger.classList.toggle('placeholder', !heatingAccount.value);
   orderHeatingAccount.textContent = heatingAccount.value || '-';
+});
+heatingAccountTrigger.addEventListener('click', openHeatingRoomDialog);
+closeHeatingRoom.addEventListener('click', hideHeatingRoomDialog);
+heatingRoomSearch.addEventListener('input', renderHeatingRooms);
+heatingRoomLayer.addEventListener('click', (event) => {
+  if (event.target === heatingRoomLayer) hideHeatingRoomDialog();
+});
+heatingRoomList.addEventListener('click', (event) => {
+  const selectButton = event.target.closest('[data-select-heating-room]');
+  if (!selectButton) return;
+  heatingAccount.value = selectButton.dataset.selectHeatingRoom;
+  heatingAccount.dispatchEvent(new Event('change'));
+  hideHeatingRoomDialog();
 });
 combinationPaymentInputs.forEach((input) => input.addEventListener('change', syncCombinationPayment));
 paymentMethodInputs.forEach((input) => input.addEventListener('change', () => {

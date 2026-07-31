@@ -134,18 +134,19 @@ button { cursor: pointer; }
 }
 
 .setup-card .select { width: 400px; height: 33px; padding: 0 13px; }
+.heating-room-trigger { cursor: pointer; font-size: 12px; }
+.heating-room-trigger > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .native-select { position: relative; }
 .native-select select { width: 100%; height: 100%; border: 0; outline: none; color: #273244; background: transparent; appearance: none; }
 .native-select > span { color: #657287; pointer-events: none; }
 
 .placeholder { color: #8793a4; }
 .text-button, .import-link, .coupon-link { padding: 0; border: 0; color: #0868f7; background: transparent; }
-.compact-row { min-height: 56px; }
-.stepper { height: 33px; display: flex; }
-.stepper button, .stepper span { display: grid; place-items: center; border: 0; background: #f7f8fa; }
-.stepper span { width: 56px; border: 1px solid #d5dae1; color: #263246; background: #fff; font-size: 14px; }
-.stepper button:last-child { width: 32px; color: #718095; font-size: 20px; }
-.stepper button:first-child { width: 32px; color: #adb4bd; font-size: 18px; }
 .account-row { align-items: flex-start; padding-top: 11px; min-height: 84px !important; }
 .account-select { width: 400px !important; }
 .account-select strong { flex: 1; margin-left: 9px; font-weight: 500; }
@@ -543,6 +544,110 @@ button { cursor: pointer; }
 .total-row strong { color: #111827; }
 .total-amount { font-size: 15px; }
 .submit-button { width: 100%; height: 42px; margin-top: 14px; border: 0; border-radius: 4px; color: #fff; background: #315efb; font-size: 14px; font-weight: 600; }
+.heating-room-layer {
+  position: fixed;
+  z-index: 98;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(27, 34, 45, .58);
+}
+.heating-room-layer[hidden] { display: none; }
+.heating-room-dialog {
+  width: min(770px, calc(100vw - 32px));
+  height: min(310px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 36px rgba(20, 30, 46, .24);
+}
+.heating-room-dialog > header {
+  height: 46px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  border-bottom: 1px solid #e2e6eb;
+}
+.heating-room-dialog > header h2 { margin: 0; color: #111827; font-size: 14px; }
+.heating-room-dialog > header button {
+  width: 34px;
+  height: 34px;
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  border: 0;
+  color: #4f5b6c;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+}
+.heating-room-content { min-height: 0; flex: 1; padding: 16px; overflow: auto; }
+.heating-room-search {
+  width: 300px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid #1769ff;
+  background: #fff;
+}
+.heating-room-search input { min-width: 0; flex: 1; border: 0; outline: 0; color: #273244; font-size: 12px; }
+.heating-room-search input::placeholder { color: #8793a4; }
+.heating-room-search span { color: #7d8796; font-size: 10px; }
+.heating-room-list { margin-top: 15px; }
+.heating-room-row {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  color: #263246;
+  font-size: 12px;
+}
+.heating-room-row:hover,
+.heating-room-row:focus-within { background: #f3f4f6; }
+.heating-room-avatar {
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  flex: 0 0 22px;
+  place-items: center;
+  margin-right: 8px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--room-color, #d89c26);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+}
+.heating-room-row strong { font-weight: 400; }
+.heating-room-verified { margin-left: 4px; color: #1683ff; font-size: 10px; }
+.heating-room-live {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  color: #ff5363;
+  background: #fff0f2;
+  font-size: 10px;
+}
+.heating-room-row > button {
+  display: none;
+  margin-left: auto;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 2px;
+  color: #fff;
+  background: #1769ff;
+  cursor: pointer;
+  font-size: 11px;
+}
+.heating-room-row:hover > button,
+.heating-room-row:focus-within > button { display: block; }
+.heating-room-empty { min-height: 130px; place-items: center; color: #8a95a5; font-size: 12px; }
+.heating-room-empty:not([hidden]) { display: grid; }
 .audience-template-layer {
   position: fixed;
   z-index: 95;

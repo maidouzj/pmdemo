@@ -374,7 +374,7 @@
           <div class="audience-toolbar">
             <button id="create-audience-template" class="primary-button audience-create-button" type="button">新建定向模板</button>
             <div class="audience-toolbar-right">
-              <span>定向模板适用于标准/长期计划，创建计划时可选用，且多个计划可共用同一模板。</span>
+              <span>把常用的定向设置存成模板，下次创建「直播间标准」「直播间长期」计划时直接导入，不用重复填写</span>
               <button id="refresh-audience-table" class="audience-icon-button" type="button" aria-label="刷新">↻</button>
             </div>
           </div>
@@ -424,7 +424,7 @@
           <div class="plan-group-toolbar">
             <button id="create-plan-group" class="primary-button" type="button">新增</button>
             <div class="plan-group-toolbar-right">
-              <span>计划分组可用于标准/长期计划，创建计划及列表筛选时可选用；筛选或统计时，仅显示当前类型下该分组关联的计划。</span>
+              <span>计划分组用于创建「直播间标准」「直播间长期」计划时进行分类管理。帮助日常按品类/活动/策略等维度对计划进行归类；并在广告列表支持按分组筛选和查看汇总数据。</span>
               <div class="plan-group-tools">
                 <button type="button" aria-label="设置">⚙</button>
                 <button id="refresh-plan-group" type="button" aria-label="刷新">↻</button>
@@ -720,10 +720,6 @@
         <section class="shutdown-list ui-panel">
           <div class="shutdown-toolbar">
             <button id="create-shutdown-strategy" class="primary-button" type="button">新建关停策略</button>
-            <div class="shutdown-toolbar-right">
-              <span>自动关停策略适用于标准/长期计划，创建计划时可选用对应类型策略，触发规则后自动关停订单。</span>
-              <button id="shutdown-refresh" type="button" aria-label="刷新">↻</button>
-            </div>
           </div>
           <div class="shutdown-table-wrap">
             <table class="shutdown-table">
@@ -737,11 +733,11 @@
 
       <div id="delivery-account-page" class="page-view delivery-account-page" hidden>
         <h1>投放号管理</h1>
-        <section class="delivery-account-filter ui-panel"><input id="delivery-account-name-filter" type="text" placeholder="输入投放号名称"><label><select id="delivery-account-status-filter"><option value="">选择在线状态</option><option value="在线">在线</option><option value="离线">离线</option></select></label><button id="delivery-account-reset" type="button">重置</button></section>
+        <section class="delivery-account-filter ui-panel"><input id="delivery-account-name-filter" type="text" placeholder="输入投放号名称"><input id="delivery-account-note-filter" type="text" placeholder="输入备注"><label><select id="delivery-account-status-filter"><option value="">选择在线状态</option><option value="在线">在线</option><option value="离线">离线</option></select></label><button id="delivery-account-reset" type="button">重置</button></section>
         <section class="delivery-account-list ui-panel">
           <div class="delivery-account-toolbar">
             <div><button class="primary-button" type="button">添加投放号</button><button class="primary-button" type="button">同步历史数据</button></div>
-            <p>因官方同时登录限制，已授权账号在官方后台扫码登录，会使畅移投掉线，需重新登录。可操作点“分身登录”进官方后台，不影响畅移投在线状态。（版本投放号数量上限100个）</p>
+            <p>官方后台扫码登录会导致畅移掉线，建议使用“分身登录”进入，可保持在线状态。（投放号上限 x个）</p>
             <div class="delivery-account-tools"><button id="offline-reminder-settings" class="offline-settings-entry" type="button">掉线提醒设置</button><button type="button" aria-label="设置">⚙</button><button id="delivery-account-refresh" type="button" aria-label="刷新">↻</button></div>
           </div>
           <div class="delivery-account-table-wrap"><table class="delivery-account-table"><thead><tr><th>投放号名称</th><th>备注</th><th>投放号类型</th><th>在线状态</th><th>离线倒计时</th><th>账户余额(元)</th><th>负责合作作者</th><th>最后登录时间</th><th>操作</th></tr></thead><tbody id="delivery-account-table-body"></tbody></table></div>
@@ -869,14 +865,14 @@
         <div id="shutdown-restart-row" class="shutdown-extra-row shutdown-longterm-only">
           <span>自动重启</span>
           <button id="shutdown-restart-toggle" class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
-          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>关停后 <input id="shutdown-restart-hours" type="number" min="1" value="1" aria-label="自动重启间隔小时数"> 小时重新启动</span>
+          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>每间隔 <input id="shutdown-restart-days" type="number" min="1" value="1" aria-label="自动重启执行间隔天数"> 天，针对暂停时长超过 <input id="shutdown-restart-hours" type="number" min="1" value="1" aria-label="计划暂停时长小时数"> 小时的计划执行开启动作</span>
         </div>
         <div class="shutdown-extra-row">
           <span><i>*</i>卡成交</span>
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>成交订单</span><select><option>≥</option></select><input type="number" value="2"><span>单后，放弃自动关停</span>
         </div>
-        <div class="shutdown-extra-row shutdown-standard-only">
+        <div class="shutdown-extra-row">
           <span><i>*</i>卡支付/操作</span>
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“电商成长卡”或操作过“加速起量”的订单，放弃自动关停</span>
@@ -1317,6 +1313,7 @@
   </div>
 
   <div id="plan-field-tooltip" class="plan-field-tooltip" role="tooltip" hidden></div>
+  <div id="shutdown-rule-tooltip" class="shutdown-rule-tooltip" role="tooltip" hidden></div>
 
   <script src="长期计划.js?v=20260720-1"></script>
 </body>

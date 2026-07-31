@@ -33,10 +33,6 @@
           <label class="required">计划名称</label>
           <div class="form-field"><input id="plan-name" class="form-input" type="text" value="产品测试" placeholder="请输入计划名称"><small id="plan-name-error" class="field-error" hidden>计划名称不能为空</small></div>
         </div>
-        <div class="form-row compact-row">
-          <label class="required">创建数量 <span class="help">?</span></label>
-          <div class="stepper"><button type="button" data-step="-1">−</button><span id="plan-count">1</span><button type="button" data-step="1">＋</button></div>
-        </div>
         <div class="form-row account-row">
           <label class="required">投放号</label>
           <div>
@@ -45,10 +41,19 @@
           </div>
           <button class="text-button" type="button">投放号授权</button>
         </div>
-        <div class="form-row"><label class="required">加热账号</label><div class="form-field"><label class="select native-select"><select id="heating-account"><option value="" selected>请选择直播账号</option><option value="李宁官方品牌店">李宁官方品牌店</option><option value="tel小小店非正式账号">tel小小店非正式账号</option></select><span>⌄</span></label><small id="heating-account-error" class="field-error" hidden>请选择被投号</small></div></div>
+        <div class="form-row">
+          <label class="required">加热直播间</label>
+          <div class="form-field">
+            <input id="heating-account" type="hidden" value="">
+            <button id="open-heating-room" class="select heating-room-trigger placeholder" type="button" aria-haspopup="dialog">
+              <span id="heating-room-value">请选择加热直播间</span><span>⌄</span>
+            </button>
+            <small id="heating-account-error" class="field-error" hidden>请选择加热直播间</small>
+          </div>
+        </div>
         <div class="form-row"><label>计划分组</label><button class="select placeholder" type="button">请选择计划分组 <span>⌄</span></button><button class="text-button" type="button">新建计划分组</button></div>
         <div class="form-row shutdown-strategy-row">
-          <label>关停策略(订单)</label>
+          <label>暂停策略(订单)</label>
           <button id="shutdown-strategy-switch" class="switch" type="button" role="switch" aria-checked="false"><span></span></button>
           <div id="shutdown-strategy-select" class="shutdown-strategy-select" hidden>
             <button id="shutdown-strategy-trigger" class="shutdown-strategy-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
@@ -183,10 +188,26 @@
 
       <div class="divider"></div>
       <div class="total-row"><span>订单数量</span><strong id="order-count">1个</strong></div>
-      <div class="total-row"><span>单笔每日应付</span><strong class="total-amount" id="order-daily-payment">￥100.00</strong></div>
+        <div class="total-row"><span>每日预算需支付</span><strong class="total-amount" id="order-daily-payment">￥100.00</strong></div>
       <button id="submit-plan" class="submit-button" type="button">提交创建</button>
     </aside>
   </main>
+  <div id="heating-room-layer" class="heating-room-layer" hidden>
+    <section class="heating-room-dialog" role="dialog" aria-modal="true" aria-labelledby="heating-room-title">
+      <header>
+        <h2 id="heating-room-title">选择被投号</h2>
+        <button id="close-heating-room" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="heating-room-content">
+        <label class="heating-room-search">
+          <input id="heating-room-search" type="text" maxlength="50" placeholder="请输入" aria-label="搜索加热直播间">
+          <span id="heating-room-search-count">0/50</span>
+        </label>
+        <div id="heating-room-list" class="heating-room-list"></div>
+        <div id="heating-room-empty" class="heating-room-empty" hidden>暂无符合条件的直播间</div>
+      </div>
+    </section>
+  </div>
   <div id="audience-template-layer" class="audience-template-layer" hidden>
     <section class="audience-template-dialog" role="dialog" aria-modal="true" aria-labelledby="audience-template-title">
       <header>
@@ -256,7 +277,7 @@
       <footer><button id="cancel-payment-order" type="button">取消</button><button id="confirm-payment-order" type="button">确定</button></footer>
     </section>
   </div>
-  <div id="account-warning-toast" class="account-warning-toast" hidden><b aria-hidden="true">×</b><span>请选择被投号</span></div>
+  <div id="account-warning-toast" class="account-warning-toast" hidden><b aria-hidden="true">×</b><span>请选择加热直播间</span></div>
   <div id="success-toast" class="toast" hidden>计划订单已创建，请完成扫码支付</div>
   <script src="新建长期计划.js?v=20260720-9"></script>
 </body>
