@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>长期计划</title>
-  <link rel="stylesheet" href="长期计划.css?v=20260721-1">
+  <link rel="stylesheet" href="长期计划.css?v=20260803-6">
 </head>
 <body>
   <header class="topbar">
@@ -177,7 +177,7 @@
             <select id="plan-status-filter" aria-label="选择状态">
               <option value="">选择状态</option>
               <option value="unauthorized">未授权代扣</option>
-              <option value="pending">待启动</option>
+              <option value="pending">待加热</option>
               <option value="reviewing">审核中</option>
               <option value="settling">结算中</option>
               <option value="active">加热中</option>
@@ -871,7 +871,7 @@
         <div id="shutdown-restart-row" class="shutdown-extra-row shutdown-longterm-only">
           <span>自动重启</span>
           <button id="shutdown-restart-toggle" class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
-          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>每间隔 <input id="shutdown-restart-days" type="number" min="1" value="1" aria-label="自动重启执行间隔天数"> 天，针对暂停时长超过 <input id="shutdown-restart-hours" type="number" min="1" value="1" aria-label="计划暂停时长小时数"> 小时的计划执行开启动作</span>
+          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>每间隔 <input id="shutdown-restart-days" type="number" min="1" value="1" aria-label="自动重启执行间隔天数"> 天，针对暂停时长超过 <input id="shutdown-restart-hours" type="number" min="1" value="1" aria-label="计划暂停时长小时数"> 小时的计划执行开启动作（仅针对系统关停的计划操作此动作）</span>
         </div>
         <div class="shutdown-extra-row">
           <span><i>*</i>卡成交</span>
@@ -977,6 +977,58 @@
     </div>
   </div>
 
+  <div id="stage-detail-column-settings-panel" class="column-settings-modal" hidden>
+    <div class="column-settings-dialog" role="dialog" aria-modal="true" aria-labelledby="stage-detail-column-settings-title">
+      <h2 id="stage-detail-column-settings-title">自定义列</h2>
+
+      <div class="settings-steps">
+        <div class="settings-step">
+          <span class="step-dot">1</span>
+          <span>勾选需要展示的指标数据</span>
+        </div>
+        <div class="settings-step">
+          <span class="step-dot">2</span>
+          <span>长按拖动可调整排序</span>
+        </div>
+      </div>
+
+      <div class="settings-content">
+        <section class="column-picker">
+          <div class="column-search">
+            <span>⌕</span>
+            <input id="stage-detail-column-search" type="text" placeholder="搜索">
+          </div>
+          <div class="picker-body">
+            <nav class="picker-category" aria-label="字段分类">
+              <button class="picker-category-item active" type="button">投放数据</button>
+            </nav>
+            <div class="picker-main">
+              <div id="stage-detail-settings-list" class="column-settings-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="selected-column-panel">
+          <div class="selected-column-header">
+            <span>已选指标（<strong id="stage-detail-selected-count">19</strong>）</span>
+            <div class="selected-column-header-actions">
+              <span class="selected-column-action-tooltip" data-tooltip="恢复默认排序及全选状态">
+                <button id="stage-detail-reset-columns" type="button" aria-label="重置，恢复默认排序及全选状态">重置</button>
+              </span>
+              <button id="stage-detail-clear-columns" type="button">清空</button>
+            </div>
+          </div>
+          <div id="stage-detail-selected-list" class="selected-column-list"></div>
+        </section>
+      </div>
+
+      <div class="settings-footer">
+        <button id="stage-detail-column-cancel" class="modal-cancel-button" type="button">取消</button>
+        <button id="stage-detail-column-confirm" class="modal-confirm-button" type="button">确定</button>
+      </div>
+    </div>
+  </div>
+
   <div id="legacy-payment-layer" class="legacy-payment-layer" hidden>
     <section class="legacy-payment-dialog" role="dialog" aria-modal="true" aria-labelledby="legacy-payment-title">
       <header>
@@ -1067,7 +1119,7 @@
           <div class="summary-line summary-line-secondary">
             <span class="summary-label">计划ID</span>
             <span id="drawer-plan-id">1783612800_1096390</span>
-            <span class="summary-label summary-amount-label">投放金额</span>
+            <span class="summary-label summary-amount-label">每日预算需支付</span>
             <span class="summary-amount"><span id="drawer-plan-amount">￥2000</span></span>
             <span class="summary-label summary-update-label">数据更新时间</span>
             <span>2026-07-13 15:12:21</span>
@@ -1079,53 +1131,22 @@
         </section>
 
         <nav class="drawer-tabs" aria-label="数据详情分类">
-          <button class="drawer-tab active" type="button" data-drawer-tab="plan-detail">计划详情</button>
-          <button class="drawer-tab" type="button" data-drawer-tab="stage-data">阶段投放数据<span class="tab-help">?</span></button>
+          <button class="drawer-tab active" type="button" data-drawer-tab="stage-data">投放数据</button>
+          <button class="drawer-tab" type="button" data-drawer-tab="plan-detail">计划详情</button>
           <button class="drawer-tab" type="button" data-drawer-tab="category-effect">分类投放效果</button>
           <button class="drawer-tab" type="button" data-drawer-tab="plan-log">计划日志<span class="tab-help">?</span></button>
         </nav>
 
-        <div class="drawer-panel active" data-drawer-panel="plan-detail">
-          <div class="drawer-section-heading">
-            <h3>加热数据</h3>
-            <span>统计周期：<b id="drawer-statistics-start">2026-07-24</b> 至 <b id="drawer-statistics-end">2026-07-30</b></span>
-          </div>
-          <div class="drawer-metrics">
-            <div class="drawer-metric success"><span>成交ROI</span><strong>0.00</strong></div>
-            <div class="drawer-metric"><span>总成交金额</span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric"><span>总成交订单数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>平均客单价</span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric"><span class="drawer-metric-label-with-help">空耗值 <i class="help-dot effect-help" tabindex="0" aria-label="空耗值=累计广告消耗-（广告出价×累计转化数）" data-tooltip="空耗值=累计广告消耗-（广告出价×累计转化数）">?</i></span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric danger"><span>下单ROI</span><strong>0.00</strong></div>
-            <div class="drawer-metric"><span>当场下单金额</span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric"><span>当场下单订单数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>总成交/下单金额比</span><strong>0.00 %</strong></div>
-            <div class="drawer-metric"><span>点击成本</span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric"><span class="drawer-metric-label-with-help">减券消耗ROI <i class="help-dot effect-help" tabindex="0" aria-label="减券消耗ROI = 总成交金额 /（总消耗金额 - 预期保障券消耗 + 流量点差值）" data-tooltip="减券消耗ROI = 总成交金额 /（总消耗金额 - 预期保障券消耗 + 流量点差值）">?</i></span><strong>0.00</strong></div>
-            <div class="drawer-metric"><span>商品点击次数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>商品点击人数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>商品点击率</span><strong>0.00 %</strong></div>
-            <div class="drawer-metric"><span>点击成交率</span><strong>0.00 %</strong></div>
-            <div class="drawer-metric"><span>进入率</span><strong>0.00 %</strong></div>
-            <div class="drawer-metric"><span>总消耗金额</span><strong>¥ 0.00</strong></div>
-            <div class="drawer-metric"><span>总曝光人数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>总进入人数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>总点赞次数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>总评论次数</span><strong>0</strong></div>
-            <div class="drawer-metric"><span>新增关注数</span><strong>0</strong></div>
-          </div>
-
+        <div class="drawer-panel" data-drawer-panel="plan-detail">
           <h3>加热信息</h3>
           <div class="drawer-info-grid">
             <div><span>加热素材</span><strong>直播加热直播间</strong></div>
             <div><span>放量模式</span><strong>匀速放量</strong></div>
             <div><span>优先提升目标</span><strong>直播间观众</strong></div>
             <div><span>加热方式</span><strong>快速加热</strong></div>
-            <div><span>出价/目标ROI</span><strong class="green-value">0</strong></div>
-            <div><span>开始时间</span><strong>--</strong></div>
-            <div><span>预计加热时长</span><strong>30分钟</strong></div>
-            <div><span>实际加热时长</span><strong>0秒</strong></div>
-            <div><span>结束时间</span><strong>2026-07-13 15:11:38</strong></div>
+            <div><span>出价/目标ROI</span><strong class="green-value">2.00</strong></div>
+            <div><span>加热周期</span><strong>2026/07/13 - 2026/08/13</strong></div>
+            <div><span>加热时段</span><strong>00:00 - 23:59</strong></div>
             <div><span>观众年龄</span><strong>不限</strong></div>
             <div><span>观众性别</span><strong>不限</strong></div>
             <div><span>下单时间</span><strong>2026-07-13 15:10:37</strong></div>
@@ -1145,7 +1166,7 @@
           </div>
         </div>
 
-        <div class="drawer-panel" data-drawer-panel="stage-data">
+        <div class="drawer-panel active" data-drawer-panel="stage-data">
           <div class="stage-filter-bar">
             <label class="stage-dimension-filter">时间维度：
               <select id="stage-time-dimension" aria-label="时间维度">
@@ -1154,7 +1175,7 @@
               </select>
             </label>
             <div id="stage-date-picker" class="stage-date-picker">
-            <button id="stage-date-trigger" class="stage-date-filter" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择60个自然日">
+            <button id="stage-date-trigger" class="stage-date-filter" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择30个自然日">
               <span id="stage-date-start-label">2026-07-13</span><i>-</i><span id="stage-date-end-label">2026-07-17</span><b aria-hidden="true">▣</b>
             </button>
             <div id="stage-date-panel" class="stage-date-panel" hidden>
@@ -1162,7 +1183,10 @@
                 <button type="button" data-stage-range="today">今天</button>
                 <button type="button" data-stage-range="yesterday">昨天</button>
                 <button type="button" data-stage-range="last7">近7天</button>
-                <button type="button" data-stage-range="last7WithoutToday">近7天不含今</button>
+                <button type="button" data-stage-range="last30">近30天</button>
+                <button type="button" data-stage-range="thisMonth">本月</button>
+                <button type="button" data-stage-range="last7WithoutToday">近7天-不含今</button>
+                <button type="button" data-stage-range="last30WithoutToday">近30天-不含今</button>
               </aside>
               <div class="stage-calendar-main">
                 <div class="stage-calendar-head"><button type="button" aria-label="上一月">«　‹</button><strong>2026-07</strong><strong>2026-08</strong><button type="button" aria-label="下一月">›　»</button></div>
@@ -1181,7 +1205,7 @@
           </div>
 
           <div class="stage-summary-metrics">
-            <div><span>总消耗金额</span><strong id="stage-total-spend">￥1,269.50</strong></div>
+            <div><span>周期内消耗金额</span><strong id="stage-total-spend">￥1,269.50</strong></div>
             <div><span>总成交金额</span><strong id="stage-total-order-amount">￥5,118.00</strong></div>
             <div><span>总成交订单数</span><strong id="stage-total-orders">69</strong></div>
             <div><span>总成交ROI</span><strong id="stage-total-roi">4.03</strong></div>
@@ -1191,23 +1215,21 @@
 
           <section class="stage-trend-section">
             <div class="stage-chart-card">
-              <div class="stage-chart-toolbar">
+              <div id="stage-chart-toolbar" class="stage-chart-toolbar">
                 <div id="stage-metric-picker" class="stage-metric-picker">
                   <div id="stage-metric-options" class="stage-metric-options stage-metric-options-flat">
-                    <button class="is-selected" type="button" data-stage-metric="spend" aria-pressed="true">消耗金额</button>
-                    <button class="is-selected" type="button" data-stage-metric="exposure" aria-pressed="true">曝光数</button>
-                    <button class="is-selected" type="button" data-stage-metric="views" aria-pressed="true">观看数</button>
+                    <button class="is-selected" type="button" data-stage-metric="spend" aria-pressed="true">周期内消耗金额</button>
+                    <button class="is-selected" type="button" data-stage-metric="orderAmount" aria-pressed="true">总成交金额</button>
+                    <button class="is-selected" type="button" data-stage-metric="dealOrders" aria-pressed="true">总成交订单数</button>
+                    <button class="is-selected" type="button" data-stage-metric="roi" aria-pressed="true">总成交ROI</button>
+                    <button class="is-selected" type="button" data-stage-metric="actualEntries" aria-pressed="true">总进入人数</button>
                     <button class="is-selected" type="button" data-stage-metric="clickUsers" aria-pressed="true">商品点击人数</button>
-                    <button class="is-selected" type="button" data-stage-metric="clicks" aria-pressed="true">商品点击次数</button>
-                    <button class="is-selected" type="button" data-stage-metric="clickCost" aria-pressed="true">商品点击成本</button>
-                    <button class="is-selected" type="button" data-stage-metric="orders" aria-pressed="true">下单订单数</button>
-                    <button class="is-selected" type="button" data-stage-metric="orderAmount" aria-pressed="true">成交订单金额</button>
-                    <button class="is-selected" type="button" data-stage-metric="roi" aria-pressed="true">成交ROI</button>
                   </div>
                 </div>
               </div>
               <div id="stage-chart-legend" class="stage-chart-legend"></div>
-              <svg id="stage-trend-chart" class="stage-trend-chart" viewBox="0 0 820 230" role="img" aria-label="阶段投放数据趋势折线图"></svg>
+              <svg id="stage-trend-chart" class="stage-trend-chart" viewBox="0 0 820 230" role="img" aria-label="投放数据趋势折线图"></svg>
+              <div id="stage-trend-fallback" class="stage-trend-fallback" hidden></div>
               <div id="stage-chart-tooltip" class="stage-chart-tooltip" hidden></div>
             </div>
           </section>
@@ -1215,6 +1237,12 @@
           <section class="stage-detail-section">
             <div class="stage-detail-heading">
               <h3 id="stage-detail-title">每日数据明细</h3>
+              <div class="stage-detail-tools">
+                <span id="stage-detail-feedback" class="stage-detail-feedback" role="status" aria-live="polite"></span>
+                <button id="stage-detail-download" type="button" aria-label="下载数据明细" title="下载">⇩</button>
+                <button id="stage-detail-column-toggle" type="button" aria-label="自定义列" aria-expanded="false" title="自定义列">⚙</button>
+                <button id="stage-detail-refresh" type="button" aria-label="刷新数据明细" title="刷新">↻</button>
+              </div>
             </div>
             <div class="stage-detail-table-wrap">
               <table class="stage-detail-table">
@@ -1226,10 +1254,18 @@
         </div>
 
         <div class="drawer-panel" data-drawer-panel="category-effect">
-          <h3 class="effect-title"><span></span>短视频消耗明细<span class="tab-help effect-help" tabindex="0" aria-label="仅记录加热期间消耗带来的曝光和进入人数" data-tooltip="仅记录加热期间消耗带来的曝光&amp;进入人数">?</span></h3>
+          <div class="effect-title-row">
+            <h3 class="effect-title"><span></span>短视频消耗明细<span class="tab-help effect-help" tabindex="0" aria-label="仅记录加热期间消耗带来的曝光和进入人数" data-tooltip="仅记录加热期间消耗带来的曝光&amp;进入人数">?</span></h3>
+            <div class="stage-date-picker effect-date-picker" data-effect-date-picker="short-video-spend">
+              <button class="stage-date-filter effect-date-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择30个自然日">
+                <span data-effect-date-start>2026-07-13</span><i>-</i><span data-effect-date-end>2026-07-17</span><b aria-hidden="true">▣</b>
+              </button>
+              <div class="stage-date-panel effect-date-panel" hidden></div>
+            </div>
+          </div>
           <div class="drawer-table-wrap effect-table effect-table-populated">
             <table class="drawer-table">
-              <thead><tr id="effect-detail-table-head"><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="0">描述<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="1">曝光人数<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="2">进入直播间人数<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="3">进入率<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="4">订单状态<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="5">成交GMV<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="6">成交订单数<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="7">成交ROI<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="8">消耗金额<span>↕</span></button></th></tr></thead>
+              <thead><tr id="effect-detail-table-head"><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="0">描述<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="1">曝光人数<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="2">进入直播间人数<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="3">进入率<span>↕</span></button></th><th>订单状态</th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="5">成交GMV<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="6">成交订单数<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="7">成交ROI<span>↕</span></button></th><th aria-sort="none"><button class="effect-sort-button" type="button" data-effect-sort="8">消耗金额<span>↕</span></button></th></tr></thead>
               <tbody id="effect-detail-table-body">
                 <tr>
                   <td><div class="effect-video-cell"><span class="effect-video-thumb thumb-scene-1"></span><div><strong>12</strong><time>2026-06-06 00:52:47</time></div></div></td>
@@ -1270,7 +1306,15 @@
               </tbody>
             </table>
           </div>
-          <h3 class="effect-title"><span></span>短视频加热效果<span class="tab-help effect-help" tabindex="0" aria-label="统计整个周期的曝光和进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量" data-tooltip="统计整个周期的曝光&amp;进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量">?</span></h3>
+          <div class="effect-title-row">
+            <h3 class="effect-title"><span></span>短视频加热效果<span class="tab-help effect-help" tabindex="0" aria-label="统计整个周期的曝光和进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量" data-tooltip="统计整个周期的曝光&amp;进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量">?</span></h3>
+            <div class="stage-date-picker effect-date-picker" data-effect-date-picker="short-video-effect">
+              <button class="stage-date-filter effect-date-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择30个自然日">
+                <span data-effect-date-start>2026-07-13</span><i>-</i><span data-effect-date-end>2026-07-17</span><b aria-hidden="true">▣</b>
+              </button>
+              <div class="stage-date-panel effect-date-panel" hidden></div>
+            </div>
+          </div>
           <div class="effect-metrics">
             <div class="drawer-metric danger"><span>总消耗金额</span><strong>¥ 0.00</strong></div>
             <div class="drawer-metric"><span>曝光总人数</span><strong>0</strong></div>
@@ -1280,7 +1324,15 @@
             <div class="drawer-metric"><span>评论总次数</span><strong>0</strong></div>
             <div class="drawer-metric"><span>新增总关注</span><strong>0</strong></div>
           </div>
-          <h3 class="effect-title"><span></span>直播间加热效果<span class="tab-help effect-help" tabindex="0" aria-label="统计整个周期的曝光和进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量" data-tooltip="统计整个周期的曝光&amp;进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量">?</span></h3>
+          <div class="effect-title-row">
+            <h3 class="effect-title"><span></span>直播间加热效果<span class="tab-help effect-help" tabindex="0" aria-label="统计整个周期的曝光和进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量" data-tooltip="统计整个周期的曝光&amp;进入人数，含推荐给相似人群带来的自然流量，含加热停止后的长尾流量">?</span></h3>
+            <div class="stage-date-picker effect-date-picker" data-effect-date-picker="live-effect">
+              <button class="stage-date-filter effect-date-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" title="最多选择30个自然日">
+                <span data-effect-date-start>2026-07-13</span><i>-</i><span data-effect-date-end>2026-07-17</span><b aria-hidden="true">▣</b>
+              </button>
+              <div class="stage-date-panel effect-date-panel" hidden></div>
+            </div>
+          </div>
           <div class="effect-metrics">
             <div class="drawer-metric danger"><span>总消耗金额</span><strong>¥ 0.00</strong></div>
             <div class="drawer-metric"><span>曝光总人数</span><strong>0</strong></div>
@@ -1324,6 +1376,6 @@
   <div id="plan-field-tooltip" class="plan-field-tooltip" role="tooltip" hidden></div>
   <div id="shutdown-rule-tooltip" class="shutdown-rule-tooltip" role="tooltip" hidden></div>
 
-  <script src="长期计划.js?v=20260720-1"></script>
+  <script src="长期计划.js?v=20260803-6"></script>
 </body>
 </html>

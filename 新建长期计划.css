@@ -471,6 +471,25 @@ button { cursor: pointer; }
 .order-radio-line label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .order-radio-line input { width: 18px; height: 18px; margin: 0; accent-color: #315efb; }
 .order-radio-line .is-disabled { color: #b5bdc8; }
+.edit-mode #priority-target:disabled,
+.edit-mode #heating-start-date:disabled,
+.edit-mode #open-video-selector:disabled,
+.edit-mode #combination-card-link:disabled {
+  color: #aeb7c4;
+  background: #f5f6f8;
+  cursor: not-allowed;
+}
+.edit-mode .material-content input:disabled,
+.edit-mode .payment-options input:disabled,
+.edit-mode .combination-options input:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.edit-mode .material-content input:disabled + *,
+.edit-mode .payment-options label,
+.edit-mode .combination-options label {
+  cursor: not-allowed;
+}
 .payment-notice { margin: 10px 0 0; color: #8a95a5; font-size: 11px; line-height: 19px; }
 .payment-notice button { padding: 0; border: 0; color: #1769ff; background: transparent; cursor: pointer; font-size: inherit; }
 .combination-section { margin-top: 12px; }

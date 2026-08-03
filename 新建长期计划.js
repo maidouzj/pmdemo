@@ -14,6 +14,7 @@ const switches = document.querySelectorAll('.switch');
 const submitButton = document.querySelector('#submit-plan');
 const successToast = document.querySelector('#success-toast');
 const confirmCreateLayer = document.querySelector('#confirm-create-layer');
+const confirmCreateTitle = document.querySelector('#confirm-create-title');
 const cancelConfirmCreate = document.querySelector('#cancel-confirm-create');
 const confirmCreate = document.querySelector('#confirm-create');
 const confirmPlanCount = document.querySelector('#confirm-plan-count');
@@ -72,12 +73,19 @@ const audienceTemplateEmpty = document.querySelector('#audience-template-empty')
 const paymentMethodInputs = document.querySelectorAll('input[name="payment-method"]');
 const combinationPaymentInputs = document.querySelectorAll('input[name="combination-payment"]');
 const combinationPaymentSummary = document.querySelector('#combination-payment-summary');
+const combinationCardLink = document.querySelector('#combination-card-link');
 const heatingRoomLayer = document.querySelector('#heating-room-layer');
 const closeHeatingRoom = document.querySelector('#close-heating-room');
 const heatingRoomSearch = document.querySelector('#heating-room-search');
 const heatingRoomSearchCount = document.querySelector('#heating-room-search-count');
 const heatingRoomList = document.querySelector('#heating-room-list');
 const heatingRoomEmpty = document.querySelector('#heating-room-empty');
+const planGroupSelect = document.querySelector('#plan-group-select');
+const planGroupValue = document.querySelector('#plan-group-value');
+
+const pageParams = new URLSearchParams(window.location.search);
+const isEditMode = pageParams.get('mode') === 'edit';
+const editPlanId = pageParams.get('planId') || '';
 
 const planCount = 1;
 let selectedAmount = Number(dailyBudgetOptions.querySelector('input[name="daily-budget"]:checked')?.value || 100);
@@ -122,6 +130,36 @@ const audienceTemplateOptions = [
   '测试112'
 ];
 
+const editablePlanPresets = {
+  '1783526400_1862699': {
+    name: '产品测试，花光所有的豆',
+    heatingRoom: 'tel小小店非正式账号',
+    group: '长期计划包-测试',
+    priorityTarget: 'product-click',
+    dailyBudget: 1000,
+    startDate: '2026-07-14',
+    endDate: '2026-08-12',
+    directMaterial: true,
+    shortVideoMaterial: false,
+    paymentMethod: '微信豆',
+    combinationPayment: 'none'
+  },
+  '1783440000_1703702': {
+    name: '[7.6复投]主力计划0703-6',
+    heatingRoom: 'tel小小店非正式账号',
+    group: '长期计划包-测试',
+    priorityTarget: 'followers',
+    dailyBudget: 200,
+    startDate: '2026-07-03',
+    endDate: '2026-08-02',
+    directMaterial: true,
+    shortVideoMaterial: true,
+    selectedVideos: ['video-2'],
+    paymentMethod: '微信豆',
+    combinationPayment: 'specified'
+  }
+};
+
 function updateOrderSummary() {
   orderCount.textContent = `${planCount}个`;
   orderDailyPayment.textContent = `￥${selectedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -141,6 +179,60 @@ function getOrderPaymentSummary() {
     recommended: '使用系统推荐卡券'
   };
   return `${paymentMethod} ｜ ${combinationPaymentLabels[combinationPayment]}`;
+}
+
+function setDailyBudget(amount) {
+  const presetOption = dailyBudgetOptions.querySelector(`input[value="${amount}"]`);
+  const customOption = dailyBudgetOptions.querySelector('input[value="custom"]');
+  dailyBudgetOptions.querySelectorAll('input[name="daily-budget"]').forEach((input) => { input.checked = false; });
+  if (presetOption) {
+    presetOption.checked = true;
+  } else {
+    customOption.checked = true;
+    customDailyBudget.value = String(amount);
+  }
+  selectedAmount = Number(amount);
+  syncCustomBudgetVisibility();
+  updateOrderSummary();
+}
+
+function applyEditMode() {
+  if (!isEditMode) return;
+  const preset = editablePlanPresets[editPlanId] || editablePlanPresets['1783526400_1862699'];
+
+  document.title = '调整长期计划';
+  document.body.classList.add('edit-mode');
+  planName.value = preset.name;
+  heatingAccount.value = preset.heatingRoom;
+  heatingAccount.dispatchEvent(new Event('change'));
+  planGroupValue.textContent = preset.group;
+  planGroupSelect.classList.remove('placeholder');
+  priorityTarget.value = preset.priorityTarget;
+  setDailyBudget(preset.dailyBudget);
+  heatingStartDate.value = preset.startDate;
+  heatingEndDate.value = preset.endDate;
+  directHeatingMaterial.checked = preset.directMaterial;
+  shortVideoHeatingMaterial.checked = preset.shortVideoMaterial;
+  shortVideoMaterialRow.hidden = !preset.shortVideoMaterial;
+  selectedVideoIds.clear();
+  (preset.selectedVideos || []).forEach((videoId) => selectedVideoIds.add(videoId));
+  renderSelectedVideoTags();
+  paymentMethodInputs.forEach((input) => { input.checked = input.value === preset.paymentMethod; });
+  combinationPaymentInputs.forEach((input) => { input.checked = input.value === preset.combinationPayment; });
+  syncCombinationPayment();
+
+  priorityTarget.disabled = true;
+  directHeatingMaterial.disabled = true;
+  shortVideoHeatingMaterial.disabled = true;
+  openVideoSelector.disabled = true;
+  paymentMethodInputs.forEach((input) => { input.disabled = true; });
+  combinationPaymentInputs.forEach((input) => { input.disabled = true; });
+  combinationCardLink.disabled = true;
+  heatingStartDate.disabled = true;
+
+  submitButton.textContent = '提交修改';
+  confirmCreateTitle.innerHTML = '<span aria-hidden="true">!</span>确认要提交修改吗？';
+  successToast.textContent = '计划修改已提交';
 }
 
 function renderHeatingRooms() {
@@ -537,7 +629,7 @@ submitButton.addEventListener('click', () => {
   confirmPlanCount.textContent = `${planCount}个`;
   confirmPriorityTarget.textContent = priorityTarget.options[priorityTarget.selectedIndex].textContent;
   confirmDailyBudget.textContent = `￥${selectedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  confirmHeatingPeriod.textContent = `${heatingStartDate.value} - ${heatingEndDate.value}`;
+  confirmHeatingPeriod.textContent = `${heatingStartDate.value.replace(/-/g, '/')} - ${heatingEndDate.value.replace(/-/g, '/')}`;
   confirmOrderPayment.textContent = getOrderPaymentSummary();
   confirmCreateLayer.hidden = false;
 });
@@ -590,3 +682,4 @@ syncAuthorCustomerVisibility();
 renderShutdownStrategyTags();
 updateOrderSummary();
 syncCombinationPayment();
+applyEditMode();

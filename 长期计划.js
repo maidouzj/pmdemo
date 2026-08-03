@@ -835,7 +835,7 @@ function renderBusinessCell(field, row) {
 
 function getDeliveryStateText(state) {
   if (state === 'unauthorized') return '未授权代扣';
-  if (state === 'pending') return '待启动';
+  if (state === 'pending') return '待加热';
   if (state === 'reviewing') return '审核中';
   if (state === 'settling') return '结算中';
   if (state === 'paused') return '已暂停';
@@ -854,11 +854,15 @@ function renderRowActions(row, rowIndex) {
     return `<div class="row-actions"><button class="row-action-button" type="button" data-open-payment="${rowIndex}">支付</button>&nbsp; <button class="row-action-button" type="button" data-open-drawer="${rowIndex}">数据</button>&nbsp; <button class="row-action-button" type="button" data-close-delivery="${rowIndex}">终止</button>&nbsp; <button class="row-action-button" type="button" data-redeliver="${rowIndex}">复投</button></div>`;
   }
   const dataAction = `<button class="row-action-button" type="button" data-open-drawer="${rowIndex}">数据</button>`;
+  const adjustAction = `<button class="row-action-button" type="button" data-adjust-plan="${rowIndex}">调整</button>`;
   const redeliverAction = `<button class="row-action-button" type="button" data-redeliver="${rowIndex}">复投</button>`;
   if (row.deliveryState === 'paused') {
-    return `<div class="row-actions">${dataAction}&nbsp; <button class="row-action-button" type="button" data-toggle-status="${rowIndex}">恢复</button>&nbsp; ${redeliverAction}</div>`;
+    return `<div class="row-actions">${dataAction}&nbsp; ${adjustAction}&nbsp; <button class="row-action-button" type="button" data-toggle-status="${rowIndex}">恢复</button>&nbsp; ${redeliverAction}</div>`;
   }
-  if (row.deliveryState === 'active' || row.deliveryState === 'pending' || row.deliveryState === 'reviewing') {
+  if (row.deliveryState === 'pending') {
+    return `<div class="row-actions">${dataAction}&nbsp; <button class="row-action-button" type="button" data-close-delivery="${rowIndex}">终止</button>&nbsp; ${adjustAction}&nbsp; <button class="row-action-button" type="button" data-toggle-status="${rowIndex}">暂停</button>&nbsp; ${redeliverAction}</div>`;
+  }
+  if (row.deliveryState === 'active' || row.deliveryState === 'reviewing') {
     return `<div class="row-actions">${dataAction}&nbsp; <button class="row-action-button" type="button" data-close-delivery="${rowIndex}">终止</button>&nbsp; <button class="row-action-button" type="button" data-toggle-status="${rowIndex}">暂停</button>&nbsp; ${redeliverAction}</div>`;
   }
   return `<div class="row-actions">${dataAction}&nbsp; ${redeliverAction}</div>`;
@@ -1230,19 +1234,34 @@ const drawerScrollArea = document.querySelector('.drawer-scroll-area');
 const drawerPlanName = document.querySelector('#drawer-plan-name');
 const drawerPlanId = document.querySelector('#drawer-plan-id');
 const drawerPlanAmount = document.querySelector('#drawer-plan-amount');
-const drawerStatisticsStart = document.querySelector('#drawer-statistics-start');
-const drawerStatisticsEnd = document.querySelector('#drawer-statistics-end');
 const stageMetricPicker = document.querySelector('#stage-metric-picker');
 const stageMetricOptions = document.querySelector('#stage-metric-options');
+const stageChartToolbar = document.querySelector('#stage-chart-toolbar');
 const stageChartLegend = document.querySelector('#stage-chart-legend');
 const stageTrendChart = document.querySelector('#stage-trend-chart');
+const stageTrendFallback = document.querySelector('#stage-trend-fallback');
 const stageChartCard = document.querySelector('.stage-chart-card');
 const stageChartTooltip = document.querySelector('#stage-chart-tooltip');
 const stageDetailTableBody = document.querySelector('#stage-detail-table-body');
 const stageDetailTableHead = document.querySelector('#stage-detail-table-head');
 const stageDetailTitle = document.querySelector('#stage-detail-title');
+const stageDetailDownload = document.querySelector('#stage-detail-download');
+const stageDetailColumnToggle = document.querySelector('#stage-detail-column-toggle');
+const stageDetailColumnSettingsPanel = document.querySelector('#stage-detail-column-settings-panel');
+const stageDetailSettingsList = document.querySelector('#stage-detail-settings-list');
+const stageDetailColumnSearch = document.querySelector('#stage-detail-column-search');
+const stageDetailSelectedList = document.querySelector('#stage-detail-selected-list');
+const stageDetailSelectedCount = document.querySelector('#stage-detail-selected-count');
+const stageDetailResetColumns = document.querySelector('#stage-detail-reset-columns');
+const stageDetailClearColumns = document.querySelector('#stage-detail-clear-columns');
+const stageDetailColumnCancel = document.querySelector('#stage-detail-column-cancel');
+const stageDetailColumnConfirm = document.querySelector('#stage-detail-column-confirm');
+const stageDetailRefresh = document.querySelector('#stage-detail-refresh');
+const stageDetailFeedback = document.querySelector('#stage-detail-feedback');
 const effectDetailTableHead = document.querySelector('#effect-detail-table-head');
 const effectDetailTableBody = document.querySelector('#effect-detail-table-body');
+const effectDatePickerElements = document.querySelectorAll('[data-effect-date-picker]');
+const effectDatePickerStates = new Map();
 const stageTimeDimension = document.querySelector('#stage-time-dimension');
 const stageDatePicker = document.querySelector('#stage-date-picker');
 const stageDateTrigger = document.querySelector('#stage-date-trigger');
@@ -1261,8 +1280,7 @@ const stageTotalRoi = document.querySelector('#stage-total-roi');
 const stageTotalEntries = document.querySelector('#stage-total-entries');
 const stageTotalClickUsers = document.querySelector('#stage-total-click-users');
 const selectedStageMetrics = new Set([
-  'spend', 'exposure', 'views', 'clickUsers',
-  'clicks', 'clickCost', 'orders', 'orderAmount', 'roi'
+  'spend', 'orderAmount', 'dealOrders', 'roi', 'actualEntries', 'clickUsers'
 ]);
 let stageDateStart = '2026-07-13';
 let stageDateEnd = '2026-07-17';
@@ -1270,29 +1288,62 @@ let draftStageDateStart = stageDateStart;
 let draftStageDateEnd = stageDateEnd;
 let stageTimeMode = 'day';
 const stageDetailSortState = {
-  day: { key: null, direction: 'asc' },
-  hour: { key: null, direction: 'asc' }
+  day: { key: 'date', direction: 'asc' },
+  hour: { key: 'date', direction: 'asc' }
 };
 
-function syncDrawerStatisticsPeriod() {
-  drawerStatisticsStart.textContent = longTermStatisticsStartLabel.textContent.trim();
-  drawerStatisticsEnd.textContent = longTermStatisticsEndLabel.textContent.trim();
-}
-
 const stageMetricDefinitions = {
-  spend: { label: '消耗金额', color: '#1769ff', format: 'money' },
+  spend: { label: '周期内消耗金额', color: '#1769ff', format: 'money' },
   stageGmv: { label: '阶段GMV', color: '#ff9f43', format: 'money' },
   exposure: { label: '曝光数', color: '#7b61ff', format: 'integer' },
   views: { label: '观看数', color: '#18a0a8', format: 'integer' },
+  actualEntries: { label: '总进入人数', color: '#ff7a45', format: 'integer' },
   clickUsers: { label: '商品点击人数', color: '#e455c4', format: 'integer' },
   clicks: { label: '商品点击次数', color: '#9a60d1', format: 'integer' },
   comments: { label: '评论次数', color: '#7bc043', format: 'integer' },
   clickCost: { label: '商品点击成本', color: '#00a870', format: 'money' },
   orders: { label: '下单订单数', color: '#f5a623', format: 'integer' },
-  dealOrders: { label: '成交订单数', color: '#e55353', format: 'integer' },
-  orderAmount: { label: '成交订单金额', color: '#e95065', format: 'money' },
-  roi: { label: '成交ROI', color: '#4f6bdc', format: 'decimal' }
+  dealOrders: { label: '总成交订单数', color: '#e55353', format: 'integer' },
+  orderAmount: { label: '总成交金额', color: '#e95065', format: 'money' },
+  roi: { label: '总成交ROI', color: '#4f6bdc', format: 'decimal' }
 };
+
+const stageDetailFieldDefinitions = {
+  periodSpend: { label: '周期内消耗金额', format: 'money' },
+  totalDealAmount: { label: '总成交金额', format: 'money' },
+  totalDealRoi: { label: '总成交ROI', format: 'decimal' },
+  totalDealOrders: { label: '总成交订单数', format: 'integer' },
+  totalEntries: { label: '总进入人数', format: 'integer' },
+  totalExposure: { label: '总曝光人数', format: 'integer' },
+  liveExposure: { label: '直播间曝光人数', format: 'integer' },
+  clickCost: { label: '点击成本', format: 'money' },
+  liveViewTimes: { label: '进入直播间观看人次', format: 'integer' },
+  entryRate: { label: '进入率', format: 'percent' },
+  productClicks: { label: '商品点击次数', format: 'integer' },
+  productClickUsers: { label: '商品点击人数', format: 'integer' },
+  productClickRate: { label: '商品点击率', format: 'percent' },
+  clickDealRate: { label: '点击成交率', format: 'percent' },
+  liveOrderRoi: { label: '当场下单 ROI', format: 'decimal' },
+  liveOrders: { label: '当场下单订单数', format: 'integer' },
+  totalLikes: { label: '总点赞数', format: 'integer' },
+  totalComments: { label: '总评论数', format: 'integer' },
+  totalFollowers: { label: '总新增关注数', format: 'integer' }
+};
+const defaultStageDetailFieldOrder = Object.keys(stageDetailFieldDefinitions);
+const stageDetailColumnStorageKey = 'long-term-stage-detail-columns-v1';
+
+function loadStageDetailFieldOrder() {
+  try {
+    const savedFields = JSON.parse(localStorage.getItem(stageDetailColumnStorageKey));
+    if (!Array.isArray(savedFields)) return [...defaultStageDetailFieldOrder];
+    return savedFields.filter((field) => stageDetailFieldDefinitions[field]);
+  } catch (error) {
+    return [...defaultStageDetailFieldOrder];
+  }
+}
+
+let stageDetailFieldOrder = loadStageDetailFieldOrder();
+let draftStageDetailFieldOrder = [...stageDetailFieldOrder];
 
 const stageDailyData = [
   { date: '2026-07-11', spend: 96.80, stageGmv: 498.00, exposure: 6920, views: 3380, actualEntries: 1048, clickUsers: 221, clicks: 294, comments: 96, clickCost: 0.33, orders: 6, dealOrders: 4, orderAmount: 432.00, roi: 4.46 },
@@ -1325,6 +1376,20 @@ function getStageDateRangeDays(startDate, endDate) {
   return Math.floor((parseStageDate(endDate) - parseStageDate(startDate)) / 86400000) + 1;
 }
 
+function getStagePresetRange(rangeKey) {
+  const today = '2026-07-17';
+  const ranges = {
+    today: [today, today],
+    yesterday: [shiftStageDate(today, -1), shiftStageDate(today, -1)],
+    last7: [shiftStageDate(today, -6), today],
+    last30: [shiftStageDate(today, -29), today],
+    thisMonth: [`${today.slice(0, 7)}-01`, today],
+    last7WithoutToday: [shiftStageDate(today, -7), shiftStageDate(today, -1)],
+    last30WithoutToday: [shiftStageDate(today, -30), shiftStageDate(today, -1)]
+  };
+  return ranges[rangeKey];
+}
+
 function renderStageCalendarMonth(container, year, month) {
   const firstDay = new Date(year, month, 1);
   const mondayOffset = (firstDay.getDay() + 6) % 7;
@@ -1334,7 +1399,7 @@ function renderStageCalendarMonth(container, year, month) {
     date.setDate(firstCell.getDate() + index);
     const dateText = formatStageDate(date);
     const classes = [];
-    const exceedsMaximum = !draftStageDateEnd && Math.abs(parseStageDate(dateText) - parseStageDate(draftStageDateStart)) / 86400000 > 59;
+    const exceedsMaximum = !draftStageDateEnd && Math.abs(parseStageDate(dateText) - parseStageDate(draftStageDateStart)) / 86400000 > 29;
     if (date.getMonth() !== month) classes.push('is-muted');
     if (exceedsMaximum) classes.push('is-disabled-range');
     if (draftStageDateEnd && dateText > draftStageDateStart && dateText < draftStageDateEnd) classes.push('is-in-range');
@@ -1355,6 +1420,132 @@ function setDraftStageRange(startDate, endDate) {
   draftStageDateEnd = endDate;
   renderStageCalendars();
 }
+
+function getEffectDatePanelMarkup() {
+  return `
+    <aside class="stage-date-shortcuts">
+      <button type="button" data-effect-range="today">今天</button>
+      <button type="button" data-effect-range="yesterday">昨天</button>
+      <button type="button" data-effect-range="last7">近7天</button>
+      <button type="button" data-effect-range="last30">近30天</button>
+      <button type="button" data-effect-range="thisMonth">本月</button>
+      <button type="button" data-effect-range="last7WithoutToday">近7天-不含今</button>
+      <button type="button" data-effect-range="last30WithoutToday">近30天-不含今</button>
+    </aside>
+    <div class="stage-calendar-main">
+      <div class="stage-calendar-head"><button type="button" aria-label="上一月">«　‹</button><strong>2026-07</strong><strong>2026-08</strong><button type="button" aria-label="下一月">›　»</button></div>
+      <div class="stage-calendar-months">
+        <div class="stage-calendar-month"><div class="stage-calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div class="stage-calendar-days" data-effect-calendar-july></div></div>
+        <div class="stage-calendar-month"><div class="stage-calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div class="stage-calendar-days" data-effect-calendar-august></div></div>
+      </div>
+      <div class="stage-calendar-footer">
+        <span>▣　<b data-effect-calendar-start>2026-07-13</b></span><span class="is-disabled">◷　00:00:00</span>
+        <span>▣　<b data-effect-calendar-end>2026-07-17</b></span><span class="is-disabled">◷　23:59:59</span>
+        <button type="button" data-effect-date-confirm>确定</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderEffectCalendarMonth(container, year, month, state) {
+  const firstDay = new Date(year, month, 1);
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const firstCell = new Date(year, month, 1 - mondayOffset);
+  container.innerHTML = Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(firstCell);
+    date.setDate(firstCell.getDate() + index);
+    const dateText = formatStageDate(date);
+    const classes = [];
+    const exceedsMaximum = !state.draftEnd && Math.abs(parseStageDate(dateText) - parseStageDate(state.draftStart)) / 86400000 > 29;
+    if (date.getMonth() !== month) classes.push('is-muted');
+    if (exceedsMaximum) classes.push('is-disabled-range');
+    if (state.draftEnd && dateText > state.draftStart && dateText < state.draftEnd) classes.push('is-in-range');
+    if (dateText === state.draftStart || dateText === state.draftEnd) classes.push('is-selected');
+    return `<button class="${classes.join(' ')}" type="button" data-effect-date="${dateText}" ${exceedsMaximum ? 'disabled' : ''}>${date.getDate()}</button>`;
+  }).join('');
+}
+
+function renderEffectDateCalendars(picker, state) {
+  renderEffectCalendarMonth(picker.querySelector('[data-effect-calendar-july]'), 2026, 6, state);
+  renderEffectCalendarMonth(picker.querySelector('[data-effect-calendar-august]'), 2026, 7, state);
+  picker.querySelector('[data-effect-calendar-start]').textContent = state.draftStart;
+  picker.querySelector('[data-effect-calendar-end]').textContent = state.draftEnd || state.draftStart;
+}
+
+function syncEffectDateTrigger(picker, state) {
+  picker.querySelector('[data-effect-date-start]').textContent = state.start;
+  picker.querySelector('[data-effect-date-end]').textContent = state.end;
+}
+
+function closeEffectDatePickers(exceptPicker = null) {
+  effectDatePickerElements.forEach((picker) => {
+    if (picker === exceptPicker) return;
+    picker.querySelector('.effect-date-panel').hidden = true;
+    picker.querySelector('.effect-date-trigger').setAttribute('aria-expanded', 'false');
+  });
+}
+
+effectDatePickerElements.forEach((picker) => {
+  const trigger = picker.querySelector('.effect-date-trigger');
+  const panel = picker.querySelector('.effect-date-panel');
+  const state = {
+    start: picker.querySelector('[data-effect-date-start]').textContent.trim(),
+    end: picker.querySelector('[data-effect-date-end]').textContent.trim()
+  };
+  state.draftStart = state.start;
+  state.draftEnd = state.end;
+  effectDatePickerStates.set(picker, state);
+  panel.innerHTML = getEffectDatePanelMarkup();
+  renderEffectDateCalendars(picker, state);
+
+  trigger.addEventListener('click', () => {
+    const willOpen = panel.hidden;
+    closeEffectDatePickers(picker);
+    if (willOpen) {
+      state.draftStart = state.start;
+      state.draftEnd = state.end;
+      renderEffectDateCalendars(picker, state);
+    }
+    panel.hidden = !willOpen;
+    trigger.setAttribute('aria-expanded', String(willOpen));
+  });
+
+  panel.addEventListener('click', (event) => {
+    const dateButton = event.target.closest('[data-effect-date]');
+    if (dateButton) {
+      const selectedDate = dateButton.dataset.effectDate;
+      if (state.draftEnd) {
+        state.draftStart = selectedDate;
+        state.draftEnd = '';
+      } else if (selectedDate < state.draftStart) {
+        state.draftEnd = state.draftStart;
+        state.draftStart = selectedDate;
+      } else {
+        state.draftEnd = selectedDate;
+      }
+      renderEffectDateCalendars(picker, state);
+      return;
+    }
+
+    const rangeButton = event.target.closest('[data-effect-range]');
+    if (rangeButton) {
+      const range = getStagePresetRange(rangeButton.dataset.effectRange);
+      if (!range) return;
+      [state.draftStart, state.draftEnd] = range;
+      renderEffectDateCalendars(picker, state);
+      return;
+    }
+
+    if (!event.target.closest('[data-effect-date-confirm]')) return;
+    state.start = state.draftStart;
+    state.end = state.draftEnd || state.draftStart;
+    if (getStageDateRangeDays(state.start, state.end) > 30) state.end = shiftStageDate(state.start, 29);
+    state.draftEnd = state.end;
+    syncEffectDateTrigger(picker, state);
+    panel.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  });
+});
 
 function getVisibleStageDailyData() {
   return stageDailyData.filter((row) => row.date >= stageDateStart && row.date <= stageDateEnd);
@@ -1394,6 +1585,39 @@ function formatStageMetric(metricKey, value) {
   return Math.round(Number(value)).toLocaleString('zh-CN');
 }
 
+function getStageDetailValue(row, fieldKey) {
+  const values = {
+    periodSpend: row.spend,
+    totalDealAmount: row.orderAmount,
+    totalDealRoi: row.roi,
+    totalDealOrders: row.dealOrders,
+    totalEntries: row.actualEntries,
+    totalExposure: row.exposure,
+    liveExposure: Math.round(row.exposure * 0.82),
+    clickCost: row.clickCost,
+    liveViewTimes: row.views,
+    entryRate: row.exposure ? (row.actualEntries / row.exposure) * 100 : 0,
+    productClicks: row.clicks,
+    productClickUsers: row.clickUsers,
+    productClickRate: row.actualEntries ? (row.clickUsers / row.actualEntries) * 100 : 0,
+    clickDealRate: row.clickUsers ? (row.dealOrders / row.clickUsers) * 100 : 0,
+    liveOrderRoi: row.spend ? row.stageGmv / row.spend : 0,
+    liveOrders: row.orders,
+    totalLikes: Math.round(row.comments * 3.6),
+    totalComments: row.comments,
+    totalFollowers: Math.round(row.actualEntries * 0.035)
+  };
+  return Number(values[fieldKey] || 0);
+}
+
+function formatStageDetailValue(fieldKey, value) {
+  const format = stageDetailFieldDefinitions[fieldKey].format;
+  if (format === 'money') return `￥${Number(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (format === 'percent') return `${Number(value).toFixed(2)}%`;
+  if (format === 'decimal') return Number(value).toFixed(2);
+  return Math.round(Number(value)).toLocaleString('zh-CN');
+}
+
 function createSmoothStagePath(points) {
   if (!points.length) return '';
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
@@ -1415,7 +1639,20 @@ function createSmoothStagePath(points) {
 function renderStageTrendChart() {
   const metricKeys = [...selectedStageMetrics];
   const visibleRows = getVisibleStageData();
+  const rangeDays = getStageDateRangeDays(stageDateStart, stageDateEnd);
+  const maximumTrendDays = stageTimeMode === 'hour' ? 7 : 30;
+  const isTrendSupported = rangeDays <= maximumTrendDays;
   stageChartTooltip.hidden = true;
+  stageChartToolbar.hidden = !isTrendSupported;
+  stageChartLegend.hidden = !isTrendSupported;
+  stageTrendChart.classList.toggle('is-hidden', !isTrendSupported);
+  stageTrendFallback.hidden = isTrendSupported;
+  if (!isTrendSupported) {
+    stageTrendFallback.textContent = stageTimeMode === 'hour'
+      ? '趋势图仅支持7天内数据，请缩短筛选范围'
+      : '趋势图仅支持30天内数据，请缩短筛选范围';
+    return;
+  }
   stageMetricOptions.querySelectorAll('[data-stage-metric]').forEach((button) => {
     const selected = selectedStageMetrics.has(button.dataset.stageMetric);
     button.classList.toggle('is-selected', selected);
@@ -1469,35 +1706,104 @@ function renderStageTrendChart() {
 }
 
 function renderStageDetailTable() {
-  const fieldOrder = ['spend', 'exposure', 'views', 'clickUsers', 'clicks', 'clickCost', 'orders', 'orderAmount', 'roi'];
   const sortState = stageDetailSortState[stageTimeMode];
   const visibleRows = [...getVisibleStageData()];
-  if (sortState.key) {
-    visibleRows.sort((firstRow, secondRow) => {
-      let firstValue = sortState.key === 'period' ? firstRow.hour : firstRow[sortState.key];
-      let secondValue = sortState.key === 'period' ? secondRow.hour : secondRow[sortState.key];
-      if (sortState.key === 'date') {
-        firstValue = firstRow.date;
-        secondValue = secondRow.date;
-      }
-      const result = typeof firstValue === 'string'
-        ? firstValue.localeCompare(secondValue)
-        : Number(firstValue) - Number(secondValue);
-      return sortState.direction === 'asc' ? result : -result;
-    });
-  }
+  visibleRows.sort((firstRow, secondRow) => {
+    let firstValue;
+    let secondValue;
+    if (sortState.key === 'date') {
+      firstValue = firstRow.date;
+      secondValue = secondRow.date;
+    } else if (sortState.key === 'period') {
+      firstValue = firstRow.hour;
+      secondValue = secondRow.hour;
+    } else {
+      firstValue = getStageDetailValue(firstRow, sortState.key);
+      secondValue = getStageDetailValue(secondRow, sortState.key);
+    }
+    const result = typeof firstValue === 'string'
+      ? firstValue.localeCompare(secondValue)
+      : Number(firstValue) - Number(secondValue);
+    if (result !== 0) return sortState.direction === 'asc' ? result : -result;
+    if (stageTimeMode === 'hour') return firstRow.date.localeCompare(secondRow.date) || firstRow.hour - secondRow.hour;
+    return firstRow.date.localeCompare(secondRow.date);
+  });
   const renderSortableHeader = (label, key) => {
     const isActive = sortState.key === key;
     const ariaSort = isActive ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none';
     const stateClass = isActive ? ` is-active is-${sortState.direction}` : '';
     return `<th aria-sort="${ariaSort}"><button class="stage-sort-button${stateClass}" type="button" data-stage-sort="${key}">${label}<span aria-hidden="true"></span></button></th>`;
   };
-  const metricHeaders = fieldOrder.map((metricKey) => renderSortableHeader(stageMetricDefinitions[metricKey].label, metricKey)).join('');
+  const metricHeaders = stageDetailFieldOrder.map((fieldKey) => renderSortableHeader(stageDetailFieldDefinitions[fieldKey].label, fieldKey)).join('');
   stageDetailTitle.textContent = stageTimeMode === 'hour' ? '分时数据明细' : '每日数据明细';
   stageDetailTableHead.innerHTML = `${renderSortableHeader('统计日期', 'date')}${stageTimeMode === 'hour' ? renderSortableHeader('时段', 'period') : ''}${metricHeaders}`;
   stageDetailTableBody.innerHTML = visibleRows.length ? visibleRows.map((row) => `
-    <tr><td>${row.date}</td>${stageTimeMode === 'hour' ? `<td>${row.period}</td>` : ''}${fieldOrder.map((metricKey) => `<td>${formatStageMetric(metricKey, row[metricKey])}</td>`).join('')}</tr>
-  `).join('') : `<tr><td colspan="${stageTimeMode === 'hour' ? 11 : 10}" style="text-align:center;color:#a2abb8">暂无数据</td></tr>`;
+    <tr><td>${row.date}</td>${stageTimeMode === 'hour' ? `<td>${row.period}</td>` : ''}${stageDetailFieldOrder.map((fieldKey) => `<td>${formatStageDetailValue(fieldKey, getStageDetailValue(row, fieldKey))}</td>`).join('')}</tr>
+  `).join('') : `<tr><td colspan="${stageDetailFieldOrder.length + (stageTimeMode === 'hour' ? 2 : 1)}" style="text-align:center;color:#a2abb8">暂无数据</td></tr>`;
+}
+
+function renderStageDetailSettingsList(query = '') {
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleFields = defaultStageDetailFieldOrder.filter((fieldKey) =>
+    stageDetailFieldDefinitions[fieldKey].label.toLowerCase().includes(normalizedQuery)
+  );
+  const isAllSelected = defaultStageDetailFieldOrder.every((fieldKey) => draftStageDetailFieldOrder.includes(fieldKey));
+  const selectedCount = defaultStageDetailFieldOrder.filter((fieldKey) => draftStageDetailFieldOrder.includes(fieldKey)).length;
+  stageDetailSettingsList.innerHTML = visibleFields.length ? `
+    <section class="column-settings-section" data-column-section="投放数据">
+      ${normalizedQuery ? '<div class="picker-section-title"><span>投放数据</span></div>' : `
+        <label class="picker-section-title">
+          <input type="checkbox" data-stage-detail-select-all ${isAllSelected ? 'checked' : ''} aria-label="全选投放数据指标">
+          <span>投放数据</span>
+        </label>
+      `}
+      <div class="column-settings-grid">
+        ${visibleFields.map((fieldKey) => `
+          <label class="column-setting-item">
+            <input type="checkbox" value="${fieldKey}" ${draftStageDetailFieldOrder.includes(fieldKey) ? 'checked' : ''}>
+            <span>${stageDetailFieldDefinitions[fieldKey].label}</span>
+          </label>
+        `).join('')}
+      </div>
+    </section>
+  ` : '<div class="column-settings-empty">暂无匹配字段</div>';
+  const selectAll = stageDetailSettingsList.querySelector('[data-stage-detail-select-all]');
+  if (selectAll) selectAll.indeterminate = selectedCount > 0 && selectedCount < defaultStageDetailFieldOrder.length;
+}
+
+function renderStageDetailSelectedColumns() {
+  stageDetailSelectedList.innerHTML = draftStageDetailFieldOrder.length ? draftStageDetailFieldOrder.map((fieldKey) => `
+    <div class="selected-column-item" draggable="true" data-field="${fieldKey}">
+      <span class="drag-handle">≡</span>
+      <span class="selected-column-name">${stageDetailFieldDefinitions[fieldKey].label}</span>
+      <button class="remove-column-button" type="button" data-remove-stage-detail-field="${fieldKey}" aria-label="移除${stageDetailFieldDefinitions[fieldKey].label}">×</button>
+    </div>
+  `).join('') : `
+    <div class="selected-column-empty">
+      <span>暂无已选指标</span>
+      <p>请从左侧勾选需要展示的指标</p>
+    </div>
+  `;
+  stageDetailSelectedCount.textContent = String(draftStageDetailFieldOrder.length);
+  stageDetailResetColumns.disabled = draftStageDetailFieldOrder.length === defaultStageDetailFieldOrder.length
+    && draftStageDetailFieldOrder.every((fieldKey, index) => fieldKey === defaultStageDetailFieldOrder[index]);
+  stageDetailClearColumns.disabled = draftStageDetailFieldOrder.length === 0;
+}
+
+function refreshStageDetailColumnSettings() {
+  renderStageDetailSettingsList(stageDetailColumnSearch.value);
+  renderStageDetailSelectedColumns();
+}
+
+function closeStageDetailColumnSettings() {
+  stageDetailColumnSettingsPanel.hidden = true;
+  stageDetailColumnToggle.setAttribute('aria-expanded', 'false');
+}
+
+function showStageDetailFeedback(message) {
+  stageDetailFeedback.textContent = message;
+  clearTimeout(showStageDetailFeedback.timer);
+  showStageDetailFeedback.timer = setTimeout(() => { stageDetailFeedback.textContent = ''; }, 2600);
 }
 
 function renderStageSummary() {
@@ -1507,7 +1813,7 @@ function renderStageSummary() {
   const orderAmount = total('orderAmount');
   stageTotalSpend.textContent = formatStageMetric('spend', spend);
   stageTotalOrderAmount.textContent = formatStageMetric('orderAmount', orderAmount);
-  stageTotalOrders.textContent = total('orders').toLocaleString('zh-CN');
+  stageTotalOrders.textContent = total('dealOrders').toLocaleString('zh-CN');
   stageTotalRoi.textContent = spend ? (orderAmount / spend).toFixed(2) : '0.00';
   stageTotalEntries.textContent = total('actualEntries').toLocaleString('zh-CN');
   stageTotalClickUsers.textContent = total('clickUsers').toLocaleString('zh-CN');
@@ -1548,20 +1854,14 @@ stageDatePanel.addEventListener('click', (event) => {
 
   const rangeButton = event.target.closest('[data-stage-range]');
   if (!rangeButton) return;
-  const today = '2026-07-17';
-  const ranges = {
-    today: [today, today],
-    yesterday: [shiftStageDate(today, -1), shiftStageDate(today, -1)],
-    last7: [shiftStageDate(today, -6), today],
-    last7WithoutToday: [shiftStageDate(today, -7), shiftStageDate(today, -1)]
-  };
-  setDraftStageRange(...ranges[rangeButton.dataset.stageRange]);
+  const range = getStagePresetRange(rangeButton.dataset.stageRange);
+  if (range) setDraftStageRange(...range);
 });
 
 stageDateConfirm.addEventListener('click', () => {
   stageDateStart = draftStageDateStart;
   stageDateEnd = draftStageDateEnd || draftStageDateStart;
-  if (getStageDateRangeDays(stageDateStart, stageDateEnd) > 60) stageDateEnd = shiftStageDate(stageDateStart, 59);
+  if (getStageDateRangeDays(stageDateStart, stageDateEnd) > 30) stageDateEnd = shiftStageDate(stageDateStart, 29);
   stageDateStartLabel.textContent = stageDateStart;
   stageDateEndLabel.textContent = stageDateEnd;
   stageDatePanel.hidden = true;
@@ -1594,6 +1894,111 @@ stageDetailTableHead.addEventListener('click', (event) => {
     sortState.direction = 'asc';
   }
   renderStageDetailTable();
+});
+
+stageDetailDownload.addEventListener('click', () => {
+  const safePlanName = drawerPlanName.textContent.trim().replace(/[\\/:*?"<>|]/g, '') || '长期计划';
+  const fileName = `${safePlanName}【投放数据】${stageDateStart}至${stageDateEnd}.xlsx`;
+  showStageDetailFeedback(`将下载：${fileName}`);
+});
+
+stageDetailColumnToggle.addEventListener('click', () => {
+  draftStageDetailFieldOrder = [...stageDetailFieldOrder];
+  stageDetailColumnSearch.value = '';
+  refreshStageDetailColumnSettings();
+  stageDetailColumnSettingsPanel.hidden = false;
+  stageDetailColumnToggle.setAttribute('aria-expanded', 'true');
+});
+
+stageDetailSettingsList.addEventListener('change', (event) => {
+  const checkbox = event.target;
+  if (!(checkbox instanceof HTMLInputElement)) return;
+  if (checkbox.matches('[data-stage-detail-select-all]')) {
+    if (checkbox.checked) {
+      defaultStageDetailFieldOrder.forEach((fieldKey) => {
+        if (!draftStageDetailFieldOrder.includes(fieldKey)) draftStageDetailFieldOrder.push(fieldKey);
+      });
+    } else {
+      draftStageDetailFieldOrder = [];
+    }
+  } else if (checkbox.checked && !draftStageDetailFieldOrder.includes(checkbox.value)) {
+    draftStageDetailFieldOrder.push(checkbox.value);
+  } else if (!checkbox.checked) {
+    draftStageDetailFieldOrder = draftStageDetailFieldOrder.filter((fieldKey) => fieldKey !== checkbox.value);
+  }
+  refreshStageDetailColumnSettings();
+});
+
+stageDetailColumnSearch.addEventListener('input', () => renderStageDetailSettingsList(stageDetailColumnSearch.value));
+
+stageDetailSelectedList.addEventListener('click', (event) => {
+  const removeButton = event.target.closest('[data-remove-stage-detail-field]');
+  if (!removeButton) return;
+  draftStageDetailFieldOrder = draftStageDetailFieldOrder.filter((fieldKey) => fieldKey !== removeButton.dataset.removeStageDetailField);
+  refreshStageDetailColumnSettings();
+});
+
+stageDetailResetColumns.addEventListener('click', () => {
+  draftStageDetailFieldOrder = [...defaultStageDetailFieldOrder];
+  refreshStageDetailColumnSettings();
+});
+
+stageDetailClearColumns.addEventListener('click', () => {
+  draftStageDetailFieldOrder = [];
+  refreshStageDetailColumnSettings();
+});
+
+stageDetailSelectedList.addEventListener('dragstart', (event) => {
+  const item = event.target.closest('.selected-column-item');
+  if (!item) return;
+  item.classList.add('dragging');
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', item.dataset.field);
+});
+
+stageDetailSelectedList.addEventListener('dragend', (event) => {
+  const item = event.target.closest('.selected-column-item');
+  if (item) item.classList.remove('dragging');
+});
+
+stageDetailSelectedList.addEventListener('dragover', (event) => event.preventDefault());
+
+stageDetailSelectedList.addEventListener('drop', (event) => {
+  event.preventDefault();
+  const targetItem = event.target.closest('.selected-column-item');
+  const draggedField = event.dataTransfer.getData('text/plain');
+  if (!targetItem || !draggedField || targetItem.dataset.field === draggedField) return;
+  const reorderedFields = draftStageDetailFieldOrder.filter((fieldKey) => fieldKey !== draggedField);
+  const targetIndex = reorderedFields.indexOf(targetItem.dataset.field);
+  reorderedFields.splice(targetIndex, 0, draggedField);
+  draftStageDetailFieldOrder = reorderedFields;
+  renderStageDetailSelectedColumns();
+});
+
+stageDetailColumnCancel.addEventListener('click', closeStageDetailColumnSettings);
+
+stageDetailColumnConfirm.addEventListener('click', () => {
+  stageDetailFieldOrder = [...draftStageDetailFieldOrder];
+  try {
+    localStorage.setItem(stageDetailColumnStorageKey, JSON.stringify(stageDetailFieldOrder));
+  } catch (error) {
+    // 本地缓存不可用时仍保留本次页面设置。
+  }
+  const sortState = stageDetailSortState[stageTimeMode];
+  if (!['date', 'period', ...stageDetailFieldOrder].includes(sortState.key)) {
+    sortState.key = 'date';
+    sortState.direction = 'asc';
+  }
+  closeStageDetailColumnSettings();
+  renderStageDetailTable();
+  showStageDetailFeedback('列设置已保存');
+});
+
+stageDetailRefresh.addEventListener('click', () => {
+  stageDetailRefresh.classList.add('is-refreshing');
+  renderStageData();
+  showStageDetailFeedback('数据已刷新');
+  setTimeout(() => stageDetailRefresh.classList.remove('is-refreshing'), 450);
 });
 
 Array.from(effectDetailTableBody.rows).forEach((row, index) => {
@@ -1647,6 +2052,11 @@ document.addEventListener('click', (event) => {
   if (stageDatePicker.contains(event.target)) return;
   stageDatePanel.hidden = true;
   stageDateTrigger.setAttribute('aria-expanded', 'false');
+});
+
+document.addEventListener('click', (event) => {
+  if (event.target.closest('[data-effect-date-picker]')) return;
+  closeEffectDatePickers();
 });
 
 stageTrendChart.addEventListener('mousemove', (event) => {
@@ -1720,6 +2130,14 @@ tableBody.addEventListener('click', (event) => {
     return;
   }
 
+  const adjustButton = event.target.closest('[data-adjust-plan]');
+  if (adjustButton) {
+    const row = planRows[Number(adjustButton.dataset.adjustPlan)];
+    const params = new URLSearchParams({ mode: 'edit', planId: row.id, state: row.deliveryState });
+    window.location.href = `新建长期计划.html?${params.toString()}`;
+    return;
+  }
+
   const closeButton = event.target.closest('[data-close-delivery]');
   if (closeButton) {
     planRows[Number(closeButton.dataset.closeDelivery)].deliveryState = 'closed';
@@ -1746,8 +2164,7 @@ tableBody.addEventListener('click', (event) => {
   drawerPlanId.textContent = row.id;
   const drawerAmount = row.amount ?? row.dailyBudget ?? 2000;
   drawerPlanAmount.textContent = `￥${String(drawerAmount).replace(/^￥/, '')}`;
-  syncDrawerStatisticsPeriod();
-  showDrawerPanel('plan-detail');
+  showDrawerPanel('stage-data');
   dataDrawerLayer.hidden = false;
 });
 

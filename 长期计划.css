@@ -2563,7 +2563,7 @@ button {
 }
 
 .status-tag-paused {
-  background: #ff9b3e;
+  background: #f04438;
 }
 
 .status-tag-unauthorized {
@@ -2801,7 +2801,7 @@ button {
 }
 
 .summary-line-secondary {
-  grid-template-columns: 58px 210px 60px 1fr 76px 220px;
+  grid-template-columns: 58px 190px 98px 1fr 76px 200px;
   border-bottom: 1px solid #e1e4e9;
 }
 
@@ -3303,6 +3303,10 @@ button {
   margin-top: 14px;
 }
 
+.stage-detail-section {
+  position: relative;
+}
+
 .stage-chart-toolbar {
   min-height: 34px;
   display: flex;
@@ -3515,6 +3519,25 @@ button {
   display: block;
 }
 
+.stage-chart-toolbar[hidden],
+.stage-chart-legend[hidden],
+.stage-trend-chart[hidden],
+.stage-trend-chart.is-hidden {
+  display: none;
+}
+
+.stage-trend-fallback {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  color: #8a94a3;
+  font-size: 12px;
+}
+
+.stage-trend-fallback[hidden] {
+  display: none;
+}
+
 .stage-chart-grid {
   stroke: #e8ecf2;
   stroke-width: 1;
@@ -3586,14 +3609,57 @@ button {
 }
 
 .stage-detail-heading {
-  height: 28px;
+  min-height: 36px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .stage-detail-heading h3 {
   margin: 0 !important;
+}
+
+.stage-detail-tools {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.stage-detail-tools > button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 3px;
+  color: #536174;
+  background: #fff;
+  cursor: pointer;
+}
+
+.stage-detail-tools > button:hover,
+.stage-detail-tools > button[aria-expanded="true"] {
+  border-color: #1769ff;
+  color: #1769ff;
+}
+
+.stage-detail-feedback {
+  max-width: 420px;
+  overflow: hidden;
+  color: #728097;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-detail-tools > button.is-refreshing {
+  animation: stage-refresh-spin .45s linear;
+}
+
+@keyframes stage-refresh-spin {
+  to { transform: rotate(360deg); }
 }
 
 .stage-detail-table-wrap {
@@ -3604,7 +3670,7 @@ button {
 
 .stage-detail-table {
   width: 100%;
-  min-width: 1180px;
+  min-width: 2380px;
   border-collapse: collapse;
   color: #303a49;
   font-size: 10px;
@@ -3755,6 +3821,29 @@ button {
   align-items: center;
   gap: 5px;
   margin-top: 12px !important;
+}
+
+.effect-title-row {
+  min-height: 44px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  margin-top: 12px;
+}
+
+.effect-title-row .effect-title {
+  margin-top: 7px !important;
+}
+
+.effect-title-row .effect-date-picker {
+  flex: 0 0 320px;
+}
+
+.effect-date-picker .stage-date-panel {
+  right: 0;
+  left: auto;
 }
 
 .effect-title > span:first-child {
