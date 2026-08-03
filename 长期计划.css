@@ -2448,6 +2448,8 @@ button {
 
 .plan-column {
   width: 185px;
+  min-width: 185px;
+  max-width: 185px;
 }
 
 .target-account-column {
@@ -2474,7 +2476,45 @@ button {
 }
 
 .status-column {
-  width: 160px;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+}
+
+.plan-table th.plan-column,
+.plan-table td.plan-column {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.plan-table th.status-column,
+.plan-table td.status-column {
+  position: sticky;
+  left: 185px;
+  z-index: 2;
+  box-shadow: 3px 0 5px rgba(31, 45, 61, .08);
+}
+
+.plan-table th.plan-column,
+.plan-table th.status-column {
+  z-index: 3;
+  background: #f4f5f7;
+}
+
+.plan-table td.plan-column,
+.plan-table td.status-column {
+  background: #fff;
+}
+
+.plan-table tbody tr:nth-child(even) td.plan-column,
+.plan-table tbody tr:nth-child(even) td.status-column {
+  background: #f8f9fb;
+}
+
+.plan-table tbody tr.is-selected td.plan-column,
+.plan-table tbody tr.is-selected td.status-column {
+  background: #eef5ff;
 }
 
 .checkbox {
@@ -2563,6 +2603,7 @@ button {
 }
 
 .status-tag-paused {
+  color: #fff;
   background: #f04438;
 }
 

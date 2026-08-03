@@ -174,7 +174,7 @@ function getOrderPaymentSummary() {
   const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value || '微信豆';
   const combinationPayment = document.querySelector('input[name="combination-payment"]:checked')?.value || 'none';
   const combinationPaymentLabels = {
-    none: '不使用',
+    none: '不使用组合方式',
     specified: '使用指定卡券',
     recommended: '使用系统推荐卡券'
   };

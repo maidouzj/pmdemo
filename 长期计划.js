@@ -922,17 +922,17 @@ function renderTable() {
   tableHead.innerHTML = `
     <th class="check-column"><button class="checkbox${allRowsSelected ? ' is-selected' : ''}${someRowsSelected ? ' is-indeterminate' : ''}" type="button" data-select-all role="checkbox" aria-checked="${someRowsSelected ? 'mixed' : String(allRowsSelected)}" aria-label="${allRowsSelected ? '取消全选' : '全选'}"></button></th>
     <th class="plan-column">计划名称/ID</th>
-    <th class="target-account-column">被投号</th>
     <th class="status-column">状态/操作</th>
+    <th class="target-account-column">被投号</th>
     ${visibleColumns.map((field) => `<th class="business-column" data-field="${field}" aria-sort="${activePlanSortField === field ? (activePlanSortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}">${renderPlanFieldHeader(field)}</th>`).join('')}
   `;
 
   tableBody.innerHTML = visibleRows.map(({ row, rowIndex }) => `
     <tr class="${selectedPlanIds.has(row.id) ? 'is-selected' : ''}">
       <td><button class="checkbox${selectedPlanIds.has(row.id) ? ' is-selected' : ''}" type="button" data-select-row="${row.id}" role="checkbox" aria-checked="${String(selectedPlanIds.has(row.id))}" aria-label="选择计划${row.name}"></button></td>
-      <td><div class="plan-name">${row.name}</div><div class="plan-id">ID: ${row.id}</div></td>
-      <td><div class="target-account"><span class="target-account-avatar">豆</span><span>${row.targetAccount}</span></div></td>
-      <td><span class="status-tag status-tag-${row.deliveryState}">${getDeliveryStateText(row.deliveryState)}</span>${renderRowActions(row, rowIndex)}</td>
+      <td class="plan-column"><div class="plan-name">${row.name}</div><div class="plan-id">ID: ${row.id}</div></td>
+      <td class="status-column"><span class="status-tag status-tag-${row.deliveryState}">${getDeliveryStateText(row.deliveryState)}</span>${renderRowActions(row, rowIndex)}</td>
+      <td class="target-account-column"><div class="target-account"><span class="target-account-avatar">豆</span><span>${row.targetAccount}</span></div></td>
       ${visibleColumns.map((field) => `<td class="business-column" data-field="${field}">${renderBusinessCell(field, row)}</td>`).join('')}
     </tr>
   `).join('');
