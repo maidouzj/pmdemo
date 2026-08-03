@@ -316,10 +316,13 @@
       <section class="list-panel ui-panel">
         <div class="list-toolbar">
           <button id="create-plan-button" class="primary-button" type="button">新建计划</button>
-          <div class="table-tools">
-            <button type="button" aria-label="下载">⇩</button>
-            <button id="column-settings-button" type="button" aria-label="设置" aria-expanded="false">⚙</button>
-            <button type="button" aria-label="刷新">↻</button>
+          <div class="list-toolbar-right">
+            <span class="list-toolbar-tip">列表数据指标中，除“当日消耗”外，其余均为统计周期内的数据。</span>
+            <div class="table-tools">
+              <button type="button" aria-label="下载">⇩</button>
+              <button id="column-settings-button" type="button" aria-label="设置" aria-expanded="false">⚙</button>
+              <button type="button" aria-label="刷新">↻</button>
+            </div>
           </div>
         </div>
 
@@ -1083,7 +1086,10 @@
         </nav>
 
         <div class="drawer-panel active" data-drawer-panel="plan-detail">
-          <h3>加热数据</h3>
+          <div class="drawer-section-heading">
+            <h3>加热数据</h3>
+            <span>统计周期：<b id="drawer-statistics-start">2026-07-24</b> 至 <b id="drawer-statistics-end">2026-07-30</b></span>
+          </div>
           <div class="drawer-metrics">
             <div class="drawer-metric success"><span>成交ROI</span><strong>0.00</strong></div>
             <div class="drawer-metric"><span>总成交金额</span><strong>¥ 0.00</strong></div>

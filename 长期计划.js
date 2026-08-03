@@ -162,6 +162,7 @@ longTermStatisticsConfirm.addEventListener('click', () => {
   }
   longTermStatisticsStartLabel.textContent = longTermStatisticsStartInput.value;
   longTermStatisticsEndLabel.textContent = longTermStatisticsEndInput.value;
+  syncDrawerStatisticsPeriod();
   closeLongTermStatisticsPanel();
   renderTable();
 });
@@ -1229,6 +1230,8 @@ const drawerScrollArea = document.querySelector('.drawer-scroll-area');
 const drawerPlanName = document.querySelector('#drawer-plan-name');
 const drawerPlanId = document.querySelector('#drawer-plan-id');
 const drawerPlanAmount = document.querySelector('#drawer-plan-amount');
+const drawerStatisticsStart = document.querySelector('#drawer-statistics-start');
+const drawerStatisticsEnd = document.querySelector('#drawer-statistics-end');
 const stageMetricPicker = document.querySelector('#stage-metric-picker');
 const stageMetricOptions = document.querySelector('#stage-metric-options');
 const stageChartLegend = document.querySelector('#stage-chart-legend');
@@ -1270,6 +1273,11 @@ const stageDetailSortState = {
   day: { key: null, direction: 'asc' },
   hour: { key: null, direction: 'asc' }
 };
+
+function syncDrawerStatisticsPeriod() {
+  drawerStatisticsStart.textContent = longTermStatisticsStartLabel.textContent.trim();
+  drawerStatisticsEnd.textContent = longTermStatisticsEndLabel.textContent.trim();
+}
 
 const stageMetricDefinitions = {
   spend: { label: '消耗金额', color: '#1769ff', format: 'money' },
@@ -1738,6 +1746,7 @@ tableBody.addEventListener('click', (event) => {
   drawerPlanId.textContent = row.id;
   const drawerAmount = row.amount ?? row.dailyBudget ?? 2000;
   drawerPlanAmount.textContent = `￥${String(drawerAmount).replace(/^￥/, '')}`;
+  syncDrawerStatisticsPeriod();
   showDrawerPanel('plan-detail');
   dataDrawerLayer.hidden = false;
 });
