@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>长期计划</title>
-  <link rel="stylesheet" href="长期计划.css?v=20260803-7">
+  <link rel="stylesheet" href="长期计划.css?v=20260807-1">
 </head>
 <body>
   <header class="topbar">
@@ -776,8 +776,8 @@
         <div class="shutdown-form-row">
           <span><i>*</i>计划类型</span>
           <div class="shutdown-plan-type-options">
-            <label><input type="radio" name="shutdown-form-plan-type" value="标准计划" checked>标准计划</label>
-            <label><input type="radio" name="shutdown-form-plan-type" value="长期计划">长期计划</label>
+            <label><input type="radio" name="shutdown-form-plan-type" value="标准计划" checked>直播间标准计划</label>
+            <label><input type="radio" name="shutdown-form-plan-type" value="长期计划">直播间长期计划</label>
           </div>
           <input id="shutdown-strategy-plan-type" type="hidden" value="标准计划">
         </div>
@@ -833,7 +833,8 @@
 
         <div class="shutdown-form-row">
           <span><i>*</i>监控方式</span>
-          <label class="shutdown-inline-check"><input type="checkbox" checked>自动暂停</label>
+          <label class="shutdown-inline-check"><input id="shutdown-monitor-method" type="checkbox" checked>自动暂停</label>
+          <em id="shutdown-monitor-method-error" class="shutdown-inline-error" hidden>请选择监控方式</em>
         </div>
 
         <div class="shutdown-form-row">
@@ -871,7 +872,8 @@
         <div id="shutdown-restart-row" class="shutdown-extra-row shutdown-longterm-only">
           <span>自动重启</span>
           <button id="shutdown-restart-toggle" class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
-          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>每间隔 <input id="shutdown-restart-days" type="number" min="1" value="1" aria-label="自动重启执行间隔天数"> 天，针对暂停时长超过 <input id="shutdown-restart-hours" type="number" min="1" value="1" aria-label="计划暂停时长小时数"> 小时的计划执行开启动作（仅针对系统关停的计划操作此动作）</span>
+          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>每间隔 <input id="shutdown-restart-days" type="number" min="1" max="30" step="1" placeholder="请输入" aria-label="自动重启执行间隔天数"> 天，针对暂停时长超过 <input id="shutdown-restart-hours" type="number" min="1" max="48" step="1" placeholder="请输入" aria-label="计划暂停时长小时数"> 小时的计划执行开启动作（仅针对被当前策略自动暂停的计划执行此动作）</span>
+          <em id="shutdown-restart-error" class="shutdown-inline-error" hidden></em>
         </div>
         <div class="shutdown-extra-row">
           <span><i>*</i>卡成交</span>
@@ -1370,6 +1372,6 @@
   <div id="plan-field-tooltip" class="plan-field-tooltip" role="tooltip" hidden></div>
   <div id="shutdown-rule-tooltip" class="shutdown-rule-tooltip" role="tooltip" hidden></div>
 
-  <script src="长期计划.js?v=20260803-6"></script>
+  <script src="长期计划.js?v=20260807-1"></script>
 </body>
 </html>
