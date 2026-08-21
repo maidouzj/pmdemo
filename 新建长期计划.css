@@ -903,6 +903,13 @@ button { cursor: pointer; }
 }
 .confirm-create-summary span { font-weight: 600; }
 .confirm-create-summary strong { font-weight: 500; }
+.confirm-edit-warning {
+  margin: 6px 0 0;
+  color: #d97706;
+  font-size: 12px;
+  line-height: 18px;
+}
+.confirm-edit-warning[hidden] { display: none; }
 .confirm-create-actions {
   display: flex;
   justify-content: center;

@@ -257,6 +257,7 @@
         <div><span>每日预算：</span><strong id="confirm-daily-budget">￥0.00</strong></div>
         <div><span>加热周期：</span><strong id="confirm-heating-period">2026/07/21 - 2026/08/20</strong></div>
         <div><span>订单支付：</span><strong id="confirm-order-payment">微信豆 ｜ 不使用组合方式</strong></div>
+        <p id="edit-risk-warning" class="confirm-edit-warning" hidden>请谨慎修改出价/定向；单日修改超过2次，则当日所属的赔付周期内不再享受成本保障计划</p>
       </div>
       <div class="confirm-create-actions">
         <button id="cancel-confirm-create" type="button">取消</button>
@@ -270,7 +271,7 @@
       <div class="payment-order-content">
         <p class="payment-order-warning">注：请使用对应投放号的微信扫描每条计划的二维码进行支付</p>
         <p class="payment-order-status">已成功支付 <strong>0</strong> 条，还有 <strong id="pending-payment-count">1</strong> 条待支付</p>
-        <p class="payment-order-description">每条订单需预支付1微信豆以核验账户安全，提交后将返还至对应账户；直播间开播后，系统将按每条订单的每日预算锁定对应微信豆余额，并在加热期间按实际消耗实时扣减，余额不足时计划将暂停。</p>
+        <p id="payment-order-description" class="payment-order-description">每条订单需预支付¥0.1以核验账户安全，提交后将返还至对应账户；直播间开播后，系统将按每条订单的每日预算锁定对应余额，并在加热期间按实际消耗实时扣减，余额不足时计划将暂停。</p>
         <div class="payment-order-table-wrap"><table class="payment-order-table"><thead><tr><th>计划名称</th><th>投放号</th><th>优先提升目标</th><th>支付金额</th><th>每日预算</th><th>请使用【创建人】的微信，扫描二维码进行支付</th></tr></thead><tbody id="payment-order-body"></tbody></table></div>
         <div class="payment-order-pagination"><button type="button">‹</button><button class="active" type="button">1</button><button type="button">›</button></div>
       </div>
@@ -279,6 +280,6 @@
   </div>
   <div id="account-warning-toast" class="account-warning-toast" hidden><b aria-hidden="true">×</b><span>请选择加热直播间</span></div>
   <div id="success-toast" class="toast" hidden>计划订单已创建，请完成扫码支付</div>
-  <script src="新建长期计划.js?v=20260803-2"></script>
+  <script src="新建长期计划.js?v=20260821-1"></script>
 </body>
 </html>

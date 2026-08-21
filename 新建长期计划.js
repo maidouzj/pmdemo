@@ -22,6 +22,7 @@ const confirmPriorityTarget = document.querySelector('#confirm-priority-target')
 const confirmDailyBudget = document.querySelector('#confirm-daily-budget');
 const confirmHeatingPeriod = document.querySelector('#confirm-heating-period');
 const confirmOrderPayment = document.querySelector('#confirm-order-payment');
+const editRiskWarning = document.querySelector('#edit-risk-warning');
 const planName = document.querySelector('#plan-name');
 const deliveryAccountName = document.querySelector('#delivery-account-name');
 const heatingAccount = document.querySelector('#heating-account');
@@ -45,6 +46,7 @@ const cancelPaymentOrder = document.querySelector('#cancel-payment-order');
 const confirmPaymentOrder = document.querySelector('#confirm-payment-order');
 const pendingPaymentCount = document.querySelector('#pending-payment-count');
 const paymentOrderBody = document.querySelector('#payment-order-body');
+const paymentOrderDescription = document.querySelector('#payment-order-description');
 const accountWarningToast = document.querySelector('#account-warning-toast');
 const shutdownStrategySwitch = document.querySelector('#shutdown-strategy-switch');
 const shutdownStrategySelect = document.querySelector('#shutdown-strategy-select');
@@ -86,12 +88,15 @@ const planGroupValue = document.querySelector('#plan-group-value');
 const pageParams = new URLSearchParams(window.location.search);
 const isEditMode = pageParams.get('mode') === 'edit';
 const editPlanId = pageParams.get('planId') || '';
+const officialErrorMessage = pageParams.get('officialError') || '';
+const officialRequiresRepayment = pageParams.get('officialRequiresRepayment') === '1';
 
 const planCount = 1;
 let selectedAmount = Number(dailyBudgetOptions.querySelector('input[name="daily-budget"]:checked')?.value || 100);
 let authorCustomerValue = 'all';
 let pendingAuthorCustomerValue = null;
 let authorCustomerConfirmed = false;
+let originalEditValues = null;
 const selectedVideoIds = new Set();
 let draftSelectedVideoIds = new Set();
 const heatingRoomOptions = [
@@ -199,6 +204,11 @@ function setDailyBudget(amount) {
 function applyEditMode() {
   if (!isEditMode) return;
   const preset = editablePlanPresets[editPlanId] || editablePlanPresets['1783526400_1862699'];
+  originalEditValues = {
+    dailyBudget: Number(preset.dailyBudget),
+    startDate: preset.startDate,
+    endDate: preset.endDate
+  };
 
   document.title = '调整长期计划';
   document.body.classList.add('edit-mode');
@@ -232,7 +242,29 @@ function applyEditMode() {
 
   submitButton.textContent = '提交修改';
   confirmCreateTitle.innerHTML = '<span aria-hidden="true">!</span>确认要提交修改吗？';
+  editRiskWarning.hidden = false;
   successToast.textContent = '计划修改已提交';
+}
+
+function showToast(message) {
+  successToast.textContent = message;
+  successToast.hidden = false;
+  window.clearTimeout(successToast.hideTimer);
+  successToast.hideTimer = window.setTimeout(() => { successToast.hidden = true; }, 2200);
+}
+
+function hasRepaymentRelevantChanges() {
+  if (!isEditMode || !originalEditValues) return true;
+  return selectedAmount !== originalEditValues.dailyBudget ||
+    heatingStartDate.value !== originalEditValues.startDate ||
+    heatingEndDate.value !== originalEditValues.endDate;
+}
+
+function getPaymentVerification() {
+  const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value || '微信豆';
+  return paymentMethod === '现金'
+    ? { amount: '¥0.01', description: '每条订单需预支付¥0.01以核验账户安全，提交后将返还至对应账户；直播间开播后，系统将按每条订单的每日预算锁定对应余额，并在加热期间按实际消耗实时扣减，余额不足时计划将暂停。' }
+    : { amount: '¥0.1', description: '每条订单需预支付¥0.1以核验账户安全，提交后将返还至对应账户；直播间开播后，系统将按每条订单的每日预算锁定对应余额，并在加热期间按实际消耗实时扣减，余额不足时计划将暂停。' };
 }
 
 function renderHeatingRooms() {
@@ -643,15 +675,25 @@ function renderPaymentOrders() {
   const selectedDeliveryAccount = deliveryAccountName.textContent.trim();
   const priorityTargetName = priorityTarget.options[priorityTarget.selectedIndex].textContent;
   const dailyBudget = `￥${selectedAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const paymentVerification = getPaymentVerification();
   pendingPaymentCount.textContent = String(planCount);
+  paymentOrderDescription.textContent = paymentVerification.description;
   paymentOrderBody.innerHTML = Array.from({ length: planCount }, (_, index) => {
     const currentPlanName = planCount === 1 ? basePlanName : `${basePlanName}${String(index + 1).padStart(2, '0')}`;
-    return `<tr><td>${currentPlanName}</td><td>${selectedDeliveryAccount}</td><td>${priorityTargetName}</td><td>1微信豆</td><td>${dailyBudget}</td><td><button class="payment-qr" type="button" data-payment-qr aria-label="放大${currentPlanName}支付二维码"></button></td></tr>`;
+    return `<tr><td>${currentPlanName}</td><td>${selectedDeliveryAccount}</td><td>${priorityTargetName}</td><td>${paymentVerification.amount}</td><td>${dailyBudget}</td><td><button class="payment-qr" type="button" data-payment-qr aria-label="放大${currentPlanName}支付二维码"></button></td></tr>`;
   }).join('');
 }
 
 confirmCreate.addEventListener('click', () => {
   confirmCreateLayer.hidden = true;
+  if (isEditMode && officialErrorMessage) {
+    showToast(officialErrorMessage);
+    return;
+  }
+  if (isEditMode && !hasRepaymentRelevantChanges() && !officialRequiresRepayment) {
+    showToast('计划修改已提交');
+    return;
+  }
   renderPaymentOrders();
   paymentOrderLayer.hidden = false;
 });
@@ -664,8 +706,7 @@ closePaymentOrder.addEventListener('click', hidePaymentOrder);
 cancelPaymentOrder.addEventListener('click', hidePaymentOrder);
 confirmPaymentOrder.addEventListener('click', () => {
   hidePaymentOrder();
-  successToast.hidden = false;
-  window.setTimeout(() => { successToast.hidden = true; }, 1600);
+  showToast(isEditMode ? '计划修改已提交' : '计划订单已创建，请完成扫码支付');
 });
 
 paymentOrderBody.addEventListener('click', (event) => {
