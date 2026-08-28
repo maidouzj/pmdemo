@@ -5020,7 +5020,7 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-query-period input { width: 82px; flex: 0 0 82px; }
 .shutdown-query-period select { width: 70px; flex: 0 0 70px; padding: 0 8px; }
 .shutdown-query-period em { color: #303846; font-style: normal; }
-.shutdown-offline-warning { margin: 12px 0 0 58px; padding: 8px 12px; border-radius: 3px; color: #d55e08; background: #fff0e6; line-height: 20px; }
+.shutdown-offline-warning { margin: 12px 0 0 58px; color: #ff8500; background: transparent; line-height: 20px; }
 .shutdown-offline-warning[hidden] { display: none; }
 .shutdown-rule-remove { width: 24px; height: 32px; padding: 0; border: 0; color: #475365; background: transparent; font-size: 20px; cursor: pointer; }
 .shutdown-rule-actions { position: absolute; right: 20px; bottom: 18px; display: flex; align-items: center; gap: 12px; color: #4a5566; }
@@ -5032,7 +5032,7 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-rule-meta label { min-height: auto !important; }
 .shutdown-rule-meta input { width: auto !important; height: auto !important; padding: 0 !important; accent-color: #1f7bf2; }
 .shutdown-rule-meta p { margin: 0; }
-.shutdown-rule-meta b { color: #ff8500; font-weight: 400; }
+.shutdown-rule-meta b { font-weight: 400; }
 
 .shutdown-extra-row { min-height: 42px; display: flex; align-items: center; gap: 10px; }
 .shutdown-extra-row select,.shutdown-extra-row input[type="number"] { width: 90px; height: 32px; padding: 0 10px; border: 1px solid #d6dce5; border-radius: 3px; background: #fff; }
@@ -5043,7 +5043,8 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-restart-setting-row { min-height: 32px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .shutdown-restart-setting-row input[type="number"] { width: 88px; }
 .shutdown-restart-setting-row #shutdown-restart-description { color: #5f7292; }
-.shutdown-restart-system-note { grid-column: 3; margin: 0; color: #ff8500; line-height: 20px; }
+.shutdown-restart-system-note { grid-column: 3; margin: 0; line-height: 20px; }
+.shutdown-offline-warning,.shutdown-rule-meta b,.shutdown-restart-system-note { color: #ff8500; }
 #shutdown-restart-error { grid-column: 3; }
 .shutdown-inline-error { color: #f04438; font-size: 12px; font-style: normal; white-space: nowrap; }
 .shutdown-inline-error[hidden] { display: none; }
