@@ -2788,7 +2788,11 @@ const shutdownFormPlanTypeOptions = document.querySelectorAll('[name="shutdown-f
 const shutdownStrategyType = document.querySelector('#shutdown-strategy-type');
 const shutdownRulePanel = document.querySelector('#shutdown-rule-panel');
 const shutdownRuleList = document.querySelector('#shutdown-rule-list');
-const shutdownAddRuleButton = shutdownRulePanel.querySelector('.shutdown-rule-actions button');
+const shutdownRuleActions = shutdownRulePanel.querySelector('.shutdown-rule-actions');
+const shutdownAddRuleButton = shutdownRuleActions.querySelector('button');
+const shutdownOfflineWarning = document.querySelector('#shutdown-offline-warning');
+const shutdownRuleRelationAnd = document.querySelector('#shutdown-rule-relation-and');
+const shutdownRuleRelationOr = document.querySelector('#shutdown-rule-relation-or');
 const shutdownNameCount = document.querySelector('#shutdown-name-count');
 const shutdownDimensionOptions = document.querySelectorAll('[data-shutdown-dimension]');
 const shutdownAccountScope = document.querySelector('#shutdown-account-scope');
@@ -2802,12 +2806,19 @@ const shutdownMonitorMethod = document.querySelector('#shutdown-monitor-method')
 const shutdownMonitorMethodError = document.querySelector('#shutdown-monitor-method-error');
 const shutdownRestartToggle = document.querySelector('#shutdown-restart-toggle');
 const shutdownRestartConfig = document.querySelector('#shutdown-restart-config');
-const shutdownRestartDays = document.querySelector('#shutdown-restart-days');
-const shutdownRestartHours = document.querySelector('#shutdown-restart-hours');
+const shutdownRestartHint = document.querySelector('#shutdown-restart-hint');
+const shutdownRestartInterval = document.querySelector('#shutdown-restart-interval');
+const shutdownRestartModeOptions = document.querySelectorAll('[name="shutdown-restart-mode"]');
+const shutdownRestartCycleOption = document.querySelector('#shutdown-restart-cycle-option');
+const shutdownRestartDescription = document.querySelector('#shutdown-restart-description');
 const shutdownRestartError = document.querySelector('#shutdown-restart-error');
 const shutdownStrategyKindOptions = document.querySelectorAll('[name="shutdown-strategy-kind"]');
 let editingShutdownIndex = -1;
 let selectedShutdownPlanType = '';
+
+function getSelectedShutdownFormPlanType() {
+  return [...shutdownFormPlanTypeOptions].find((option) => option.checked)?.value || '标准计划';
+}
 
 function renderShutdownTable() {
   const keyword = shutdownNameFilter.value.trim().toLowerCase();
@@ -2882,7 +2893,7 @@ function shutdownRuleNeedsPeriod(condition) {
 
 function getShutdownRuleConditions(row) {
   if (row?.dataset.conditionChoices) return row.dataset.conditionChoices.split('|');
-  return shutdownStrategyPlanType.value === '长期计划'
+  return getSelectedShutdownFormPlanType() === '长期计划'
     ? ['实际加热时长', '周期内消耗金额', '总消耗金额', '成交ROI']
     : ['消耗金额', '成交ROI', '空耗值'];
 }
@@ -2890,7 +2901,7 @@ function getShutdownRuleConditions(row) {
 function applyShutdownRuleValueConstraints(row) {
   const condition = row.querySelector('.shutdown-rule-condition').value;
   const input = row.querySelector('.shutdown-rule-value');
-  if (shutdownStrategyPlanType.value !== '长期计划') {
+  if (getSelectedShutdownFormPlanType() !== '长期计划') {
     input.type = 'text';
     input.removeAttribute('min');
     input.removeAttribute('max');
@@ -2904,7 +2915,7 @@ function applyShutdownRuleValueConstraints(row) {
   input.removeAttribute('max');
   input.min = condition === '实际加热时长' ? '1' : '0';
   input.max = condition === '实际加热时长' ? '99' : '';
-  input.step = condition === '成交ROI' ? '0.1' : '1';
+  input.step = condition === '成交ROI' ? '0.01' : '1';
   input.placeholder = condition ? '请输入' : '请先选择条件';
   input.disabled = !condition;
   input.setCustomValidity('');
@@ -2922,8 +2933,8 @@ function refreshShutdownRuleConditionOptions() {
   });
 }
 
-function createShutdownRuleRow({ index, condition = '', operator = '', fixedCondition = false, fixedOperator = false, conditionChoices = null, durationUnit = '天' }) {
-  const isLongTermPlan = shutdownStrategyPlanType.value === '长期计划';
+function createShutdownRuleRow({ index, condition = '', operator = '', fixedCondition = false, fixedOperator = false, conditionChoices = null, durationUnit = '天', periodUnitSwitch = false }) {
+  const isLongTermPlan = getSelectedShutdownFormPlanType() === '长期计划';
   const conditions = conditionChoices || (isLongTermPlan
     ? ['实际加热时长', '周期内消耗金额', '总消耗金额', '成交ROI']
     : ['消耗金额', '成交ROI', '空耗值']);
@@ -2933,36 +2944,47 @@ function createShutdownRuleRow({ index, condition = '', operator = '', fixedCond
   const operatorOptions = `<option value="">请选择</option><option value=">"${operator === '>' ? ' selected' : ''}>&gt;</option><option value="≤"${operator === '≤' ? ' selected' : ''}>≤</option>`;
   const unit = getShutdownRuleUnit(condition, durationUnit);
   const showPeriod = shutdownRuleNeedsPeriod(condition);
+  const periodUnitControl = periodUnitSwitch
+    ? '<select class="shutdown-query-period-unit" aria-label="查询数据周期单位"><option value="天" selected>天</option><option value="小时">小时</option></select>'
+    : '<span class="shutdown-query-period-static-unit">天</span>';
   return `
-    <div class="shutdown-rule-row" data-duration-unit="${durationUnit}" data-condition-choices="${conditionChoices ? conditionChoices.join('|') : ''}">
+    <div class="shutdown-rule-row" data-duration-unit="${durationUnit}" data-period-unit="天" data-condition-choices="${conditionChoices ? conditionChoices.join('|') : ''}">
       <span class="shutdown-rule-label">规则${['一', '二', '三'][index]}</span>
       <select class="shutdown-rule-condition"${fixedCondition ? ' disabled' : ''}>${conditionOptions}</select>
       <select class="shutdown-rule-operator"${fixedOperator ? ' disabled' : ''}>${operatorOptions}</select>
       <input class="shutdown-rule-value" type="number" min="0" step="1" placeholder="${condition ? '请输入' : '请先选择条件'}"${condition ? '' : ' disabled'}>
       <span class="shutdown-rule-unit"${unit ? '' : ' hidden'}>${unit}</span>
-      <span class="shutdown-query-period"${showPeriod ? '' : ' hidden'}>查询数据周期近 <input class="shutdown-query-period-days" type="number" min="1" value="1" aria-label="查询数据周期天数"> 天 <em>（1代表当日）</em></span>
-      ${index ? '<button class="shutdown-rule-remove" type="button" aria-label="删除规则">×</button>' : ''}
+      <span class="shutdown-query-period"${showPeriod ? '' : ' hidden'}>查询数据周期近 <input class="shutdown-query-period-days" type="number" min="1" placeholder="请输入" aria-label="查询数据周期数值"> ${periodUnitControl} <em>（1代表当日）</em></span>
+      ${index && !(fixedCondition && fixedOperator) ? '<button class="shutdown-rule-remove" type="button" aria-label="删除规则">×</button>' : ''}
     </div>`;
 }
 
 function renderShutdownRulePanel() {
-  const isLongTermPlan = shutdownStrategyPlanType.value === '长期计划';
+  const isLongTermPlan = getSelectedShutdownFormPlanType() === '长期计划';
   const strategyKind = [...shutdownStrategyKindOptions].find((option) => option.checked)?.value || '自定义';
   let rules = [{ condition: '', operator: '' }];
   if (isLongTermPlan && strategyKind === '亏损/空耗监控') {
     rules = [
-      { condition: '周期内消耗金额', operator: '>', fixedOperator: true, conditionChoices: ['周期内消耗金额', '总消耗金额'] },
-      { condition: '', operator: '' }
+      { condition: '周期内消耗金额', operator: '>', fixedCondition: true, fixedOperator: true, periodUnitSwitch: true },
+      { condition: '成交ROI', operator: '≤', fixedCondition: true, fixedOperator: true, periodUnitSwitch: true }
     ];
   } else if (isLongTermPlan && strategyKind === '低消监控') {
     rules = [
       { condition: '总消耗金额', operator: '≤', fixedCondition: true, fixedOperator: true },
-      { condition: '实际加热时长', operator: '>', durationUnit: '天' }
+      { condition: '实际加热时长', operator: '>', fixedCondition: true, fixedOperator: true, durationUnit: '天' }
     ];
   }
   shutdownRuleList.innerHTML = rules.map((rule, index) => createShutdownRuleRow({ index, ...rule })).join('');
   shutdownRuleList.querySelectorAll('.shutdown-rule-row').forEach(applyShutdownRuleValueConstraints);
   refreshShutdownRuleConditionOptions();
+  const isFixedLongTermStrategy = isLongTermPlan && ['亏损/空耗监控', '低消监控'].includes(strategyKind);
+  shutdownRulePanel.classList.toggle('is-fixed-strategy', isFixedLongTermStrategy);
+  shutdownRuleActions.hidden = isFixedLongTermStrategy;
+  shutdownRuleRelationAnd.checked = true;
+  shutdownRuleRelationAnd.disabled = isFixedLongTermStrategy;
+  shutdownRuleRelationOr.checked = false;
+  shutdownRuleRelationOr.disabled = isFixedLongTermStrategy;
+  shutdownOfflineWarning.hidden = true;
 }
 
 function updateShutdownRuleRow(row) {
@@ -2992,9 +3014,33 @@ function getShutdownRuleSummary() {
     const value = row.querySelector('.shutdown-rule-value').value.trim();
     const unit = row.querySelector('.shutdown-rule-unit').textContent;
     const period = row.querySelector('.shutdown-query-period');
-    const days = period.hidden ? '' : `（近${period.querySelector('input').value || 1}天）`;
-    return `${condition}${operator}${value}${unit}${days}`;
+    const periodUnit = row.dataset.periodUnit || '天';
+    const periodText = period.hidden ? '' : `（近${period.querySelector('input').value || '--'}${periodUnit}）`;
+    return `${condition}${operator}${value}${unit}${periodText}`;
   }).join('；');
+}
+
+function getShutdownPeriodUnit() {
+  return shutdownRuleList.querySelector('.shutdown-query-period-unit')?.value || '天';
+}
+
+function syncShutdownPeriodUnits(nextUnit) {
+  shutdownRuleList.querySelectorAll('.shutdown-rule-row').forEach((row) => {
+    row.dataset.periodUnit = nextUnit;
+    const unitSelect = row.querySelector('.shutdown-query-period-unit');
+    if (unitSelect) unitSelect.value = nextUnit;
+    const period = row.querySelector('.shutdown-query-period');
+    if (!period || period.hidden) return;
+    const input = period.querySelector('.shutdown-query-period-days');
+    input.value = '';
+    input.max = nextUnit === '小时' ? '12' : '';
+    period.querySelector('em').textContent = nextUnit === '小时' ? '（1代表当前近60分钟）' : '（1代表当日）';
+  });
+  shutdownOfflineWarning.hidden = nextUnit !== '小时';
+  shutdownRestartInterval.value = '';
+  shutdownRestartError.hidden = true;
+  updateShutdownRestartModeAvailability();
+  updateShutdownRestartDescription();
 }
 
 function updateShutdownRestartConfig() {
@@ -3003,13 +3049,62 @@ function updateShutdownRestartConfig() {
   if (!isEnabled) shutdownRestartError.hidden = true;
 }
 
+function setShutdownRestartEnabled(enabled) {
+  shutdownRestartToggle.classList.toggle('is-on', enabled);
+  shutdownRestartToggle.setAttribute('aria-pressed', String(enabled));
+  updateShutdownRestartConfig();
+}
+
+function clearShutdownRestartConfig() {
+  shutdownRestartInterval.value = '';
+  shutdownRestartModeOptions.forEach((option) => { option.checked = option.value === '每日单次'; });
+  shutdownRestartError.hidden = true;
+}
+
+function updateShutdownRestartAvailability() {
+  const isLongTermPlan = getSelectedShutdownFormPlanType() === '长期计划';
+  const strategyKind = [...shutdownStrategyKindOptions].find((option) => option.checked)?.value || '';
+  const supported = isLongTermPlan && strategyKind === '亏损/空耗监控';
+  shutdownRestartToggle.disabled = isLongTermPlan && !supported;
+  shutdownRestartHint.hidden = !isLongTermPlan || supported;
+  if (isLongTermPlan && !supported) {
+    setShutdownRestartEnabled(false);
+    clearShutdownRestartConfig();
+  }
+  updateShutdownRestartModeAvailability();
+  updateShutdownRestartDescription();
+}
+
+function updateShutdownRestartModeAvailability() {
+  const isHour = getShutdownPeriodUnit() === '小时';
+  const cycleRadio = [...shutdownRestartModeOptions].find((option) => option.value === '循环止损');
+  cycleRadio.disabled = !isHour;
+  shutdownRestartCycleOption.classList.toggle('is-disabled', !isHour);
+  if (!isHour && cycleRadio.checked) {
+    shutdownRestartModeOptions.forEach((option) => { option.checked = option.value === '每日单次'; });
+  }
+}
+
+function updateShutdownRestartDescription() {
+  const mode = [...shutdownRestartModeOptions].find((option) => option.checked)?.value || '每日单次';
+  if (mode === '循环止损') {
+    const periods = [...shutdownRuleList.querySelectorAll('.shutdown-query-period:not([hidden]) .shutdown-query-period-days')]
+      .map((input) => Number(input.value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    const observeHours = periods.length ? Math.max(...periods) : '--';
+    shutdownRestartDescription.textContent = `重启后观察 ${observeHours} 小时，再次判断是否需要关停（按规则中的最长查询周期计算）；仅处理系统自动关停/恢复`;
+  } else {
+    shutdownRestartDescription.textContent = '同一计划在同一自然日仅执行 1 次系统“关停→恢复”，次日重新开始；人工暂停/恢复不触发本功能';
+  }
+}
+
 function isIntegerInRange(value, min, max) {
   return /^\d+$/.test(value) && Number(value) >= min && Number(value) <= max;
 }
 
 function validateShutdownRules() {
   const rows = [...shutdownRuleList.querySelectorAll('.shutdown-rule-row')];
-  const isLongTermPlan = shutdownStrategyPlanType.value === '长期计划';
+  const isLongTermPlan = getSelectedShutdownFormPlanType() === '长期计划';
   for (const row of rows) {
     const conditionSelect = row.querySelector('.shutdown-rule-condition');
     const operatorSelect = row.querySelector('.shutdown-rule-operator');
@@ -3022,12 +3117,13 @@ function validateShutdownRules() {
     if (!value) error = '请输入规则数值';
     else if (isLongTermPlan && condition === '实际加热时长' && !isIntegerInRange(value, 1, 99)) error = '仅支持输入1～99的正整数';
     else if (isLongTermPlan && ['周期内消耗金额', '总消耗金额'].includes(condition) && !/^\d+$/.test(value)) error = '仅支持输入整数';
-    else if (isLongTermPlan && condition === '成交ROI' && !/^\d+(\.\d)?$/.test(value)) error = '仅支持输入到小数点后一位';
+    else if (isLongTermPlan && condition === '成交ROI' && !/^\d+(\.\d{1,2})?$/.test(value)) error = '最多保留到小数点后两位';
     valueInput.setCustomValidity(error);
     if (error) { valueInput.reportValidity(); valueInput.focus(); return false; }
     const periodInput = row.querySelector('.shutdown-query-period:not([hidden]) .shutdown-query-period-days');
-    if (periodInput && !/^\d+$/.test(periodInput.value.trim())) {
-      periodInput.setCustomValidity('仅支持输入正整数');
+    const periodUnit = row.dataset.periodUnit || '天';
+    if (periodInput && (periodUnit === '小时' ? !isIntegerInRange(periodInput.value.trim(), 1, 12) : !/^\d+$/.test(periodInput.value.trim()) || Number(periodInput.value) < 1)) {
+      periodInput.setCustomValidity(periodUnit === '小时' ? '小时仅支持输入 1～12 的正整数' : '仅支持输入正整数');
       periodInput.reportValidity();
       periodInput.focus();
       return false;
@@ -3044,18 +3140,12 @@ function validateShutdownStrategyForm() {
     return false;
   }
   if (!validateShutdownRules()) return false;
-  const isLongTermPlan = shutdownStrategyPlanType.value === '长期计划';
+  const isLongTermPlan = getSelectedShutdownFormPlanType() === '长期计划';
   if (isLongTermPlan && shutdownRestartToggle.classList.contains('is-on')) {
-    if (!isIntegerInRange(shutdownRestartDays.value.trim(), 1, 30)) {
-      shutdownRestartError.textContent = '仅支持输入 1～30 的整数';
+    if (!isIntegerInRange(shutdownRestartInterval.value.trim(), 1, 12)) {
+      shutdownRestartError.textContent = '关停后间隔仅支持输入 1～12 的正整数';
       shutdownRestartError.hidden = false;
-      shutdownRestartDays.focus();
-      return false;
-    }
-    if (!isIntegerInRange(shutdownRestartHours.value.trim(), 1, 48)) {
-      shutdownRestartError.textContent = '仅支持输入 1～48 的整数';
-      shutdownRestartError.hidden = false;
-      shutdownRestartHours.focus();
+      shutdownRestartInterval.focus();
       return false;
     }
   }
@@ -3064,7 +3154,7 @@ function validateShutdownStrategyForm() {
 }
 
 function updateShutdownStrategyFormByPlanType() {
-  const selectedPlanType = [...shutdownFormPlanTypeOptions].find((option) => option.checked)?.value || '标准计划';
+  const selectedPlanType = getSelectedShutdownFormPlanType();
   const isLongTermPlan = selectedPlanType === '长期计划';
   shutdownStrategyPlanType.value = selectedPlanType;
   shutdownStandardOnlySections.forEach((section) => {
@@ -3073,12 +3163,15 @@ function updateShutdownStrategyFormByPlanType() {
   shutdownLongTermOnlySections.forEach((section) => {
     section.hidden = !isLongTermPlan;
   });
+  const defaultStrategyKind = isLongTermPlan ? '亏损/空耗监控' : '自定义';
   shutdownStrategyKindOptions.forEach((option) => {
-    option.checked = option.value === '自定义';
+    option.checked = option.value === defaultStrategyKind;
   });
-  shutdownStrategyType.value = '自定义';
+  shutdownStrategyType.value = defaultStrategyKind;
   renderShutdownRulePanel();
-  updateShutdownRestartConfig();
+  clearShutdownRestartConfig();
+  setShutdownRestartEnabled(isLongTermPlan);
+  updateShutdownRestartAvailability();
 }
 
 function updateShutdownAccountScope() {
@@ -3102,7 +3195,9 @@ function openShutdownModal(index = -1) {
     option.checked = option.value === formPlanType;
   });
   updateShutdownStrategyFormByPlanType();
-  shutdownStrategyType.value = row ? row.strategyType : '自定义';
+  const allowedLongTermKinds = ['亏损/空耗监控', '低消监控'];
+  const requestedStrategyKind = row ? row.strategyType : (formPlanType === '长期计划' ? '亏损/空耗监控' : '自定义');
+  shutdownStrategyType.value = formPlanType === '长期计划' && !allowedLongTermKinds.includes(requestedStrategyKind) ? '亏损/空耗监控' : requestedStrategyKind;
   shutdownStrategyKindOptions.forEach((option) => { option.checked = option.value === shutdownStrategyType.value; });
   if (![...shutdownStrategyKindOptions].some((option) => option.checked)) {
     shutdownStrategyKindOptions[0].checked = true;
@@ -3116,14 +3211,13 @@ function openShutdownModal(index = -1) {
   shutdownMaterialScopeOptions.forEach((option) => { option.checked = option.value === 'all'; });
   updateShutdownPartialScope(shutdownTargetScopeOptions, shutdownTargetSelect);
   updateShutdownPartialScope(shutdownMaterialScopeOptions, shutdownMaterialSelect);
-  shutdownRestartToggle.classList.remove('is-on');
-  shutdownRestartToggle.setAttribute('aria-pressed', 'false');
-  shutdownRestartDays.value = '';
-  shutdownRestartHours.value = '';
+  clearShutdownRestartConfig();
   shutdownRestartError.hidden = true;
   shutdownMonitorMethod.checked = true;
   shutdownMonitorMethodError.hidden = true;
-  updateShutdownRestartConfig();
+  const shouldEnableRestart = formPlanType === '长期计划' && shutdownStrategyType.value === '亏损/空耗监控';
+  setShutdownRestartEnabled(shouldEnableRestart);
+  updateShutdownRestartAvailability();
   shutdownModal.hidden = false;
   shutdownNameInput.focus();
 }
@@ -3137,7 +3231,7 @@ document.querySelector('#save-shutdown-strategy').addEventListener('click', () =
   const name = shutdownNameInput.value.trim();
   if (!name) { shutdownNameInput.focus(); return; }
   if (!validateShutdownStrategyForm()) return;
-  const planType = shutdownStrategyPlanType.value || '标准计划';
+  const planType = getSelectedShutdownFormPlanType();
   const selectedDimension = document.querySelector('[data-shutdown-dimension].is-selected')?.dataset.shutdownDimension || '指定订单';
   const dimension = selectedDimension === '指定投放号' ? '投放号' : '指定订单';
   const rule = getShutdownRuleSummary() || '消耗金额>1元';
@@ -3214,10 +3308,15 @@ shutdownStrategyKindOptions.forEach((option) => option.addEventListener('change'
   if (option.checked) {
     shutdownStrategyType.value = option.value;
     renderShutdownRulePanel();
+    updateShutdownRestartAvailability();
   }
 }));
 shutdownRuleList.addEventListener('change', (event) => {
   if (event.target.matches('.shutdown-rule-condition')) updateShutdownRuleRow(event.target.closest('.shutdown-rule-row'));
+  if (event.target.matches('.shutdown-query-period-unit')) syncShutdownPeriodUnits(event.target.value);
+});
+shutdownRuleList.addEventListener('input', (event) => {
+  if (event.target.matches('.shutdown-query-period-days')) updateShutdownRestartDescription();
 });
 shutdownRuleList.addEventListener('click', (event) => {
   const removeButton = event.target.closest('.shutdown-rule-remove');
@@ -3237,10 +3336,12 @@ shutdownAddRuleButton.addEventListener('click', () => {
 shutdownMonitorMethod.addEventListener('change', () => {
   shutdownMonitorMethodError.hidden = shutdownMonitorMethod.checked;
 });
-[shutdownRestartDays, shutdownRestartHours].forEach((input) => input.addEventListener('input', () => {
+shutdownRestartInterval.addEventListener('input', () => {
   shutdownRestartError.hidden = true;
-}));
+});
+shutdownRestartModeOptions.forEach((option) => option.addEventListener('change', updateShutdownRestartDescription));
 document.querySelectorAll('.shutdown-mini-switch').forEach((button) => button.addEventListener('click', () => {
+  if (button.disabled) return;
   const nextOn = !button.classList.contains('is-on');
   button.classList.toggle('is-on', nextOn);
   button.setAttribute('aria-pressed', String(nextOn));

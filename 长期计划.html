@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>长期计划</title>
-  <link rel="stylesheet" href="长期计划.css?v=20260807-1">
+  <link rel="stylesheet" href="长期计划.css?v=20260828-8">
 </head>
 <body>
   <header class="topbar">
@@ -849,7 +849,7 @@
         <div class="shutdown-form-row">
           <span><i>*</i>策略规则</span>
           <div class="shutdown-inline-options shutdown-strategy-options">
-            <label><input type="radio" name="shutdown-strategy-kind" value="自定义" checked>自定义</label>
+            <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="自定义" checked>自定义</label>
             <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="亏损监控">亏损监控</label>
             <label class="shutdown-standard-only"><input type="radio" name="shutdown-strategy-kind" value="空耗监控">空耗监控</label>
             <label class="shutdown-longterm-only" hidden><input type="radio" name="shutdown-strategy-kind" value="亏损/空耗监控">亏损/空耗监控</label>
@@ -861,18 +861,31 @@
 
         <div id="shutdown-rule-panel" class="shutdown-rule-panel">
           <div id="shutdown-rule-list" class="shutdown-rule-list"></div>
+          <div id="shutdown-offline-warning" class="shutdown-offline-warning" hidden>按小时监控时，请确保投放号持续在线。投放号掉线后，系统无法获取掉线期间数据的实际发生时段；重新上线后，掉线期间的累计增量可能集中计入当前查询周期，导致监控数据短时偏大并误触发关停。</div>
           <div class="shutdown-rule-actions"><span>最多可添加3个规则</span><button type="button">添加规则</button></div>
         </div>
 
         <div class="shutdown-rule-meta">
-          <div><span>规则关系：</span><label><input type="radio" name="shutdown-rule-relation" checked>以上规则需同时满足</label><label><input type="radio" name="shutdown-rule-relation">以上规则满足其一即可</label></div>
+          <div><span>规则关系：</span><label><input id="shutdown-rule-relation-and" type="radio" name="shutdown-rule-relation" value="and" checked>以上规则需同时满足</label><label><input id="shutdown-rule-relation-or" type="radio" name="shutdown-rule-relation" value="or">以上规则满足其一即可</label></div>
           <p>检查频率：每1分钟更新 <b>【咨询升级】</b></p>
         </div>
 
         <div id="shutdown-restart-row" class="shutdown-extra-row shutdown-longterm-only">
-          <span>自动重启</span>
+          <span>关停后重启</span>
           <button id="shutdown-restart-toggle" class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
-          <span id="shutdown-restart-config" class="shutdown-restart-config" hidden>每间隔 <input id="shutdown-restart-days" type="number" min="1" max="30" step="1" placeholder="请输入" aria-label="自动重启执行间隔天数"> 天，针对暂停时长超过 <input id="shutdown-restart-hours" type="number" min="1" max="48" step="1" placeholder="请输入" aria-label="计划暂停时长小时数"> 小时的计划执行开启动作（仅针对被当前策略自动暂停的计划执行此动作）</span>
+          <span id="shutdown-restart-hint" class="shutdown-restart-hint" hidden>仅“亏损/空耗监控”支持关停后重新开启投放</span>
+          <div id="shutdown-restart-config" class="shutdown-restart-config" hidden>
+            <div class="shutdown-restart-mode-row">
+              <span>重启方式</span>
+              <label><input type="radio" name="shutdown-restart-mode" value="每日单次" checked>每日单次</label>
+              <label id="shutdown-restart-cycle-option"><input type="radio" name="shutdown-restart-mode" value="循环止损">循环止损</label>
+            </div>
+            <div class="shutdown-restart-setting-row">
+              <span>关停后间隔</span>
+              <input id="shutdown-restart-interval" type="number" min="1" max="12" step="1" placeholder="请输入" aria-label="关停后重启间隔小时数">
+              <span>小时重启，</span><span id="shutdown-restart-description">同一计划在同一自然日仅执行 1 次系统“关停→恢复”，次日重新开始</span>
+            </div>
+          </div>
           <em id="shutdown-restart-error" class="shutdown-inline-error" hidden></em>
         </div>
         <div class="shutdown-extra-row">
@@ -880,12 +893,12 @@
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>成交订单</span><select><option>≥</option></select><input type="number" value="2"><span>单后，放弃自动关停</span>
         </div>
-        <div class="shutdown-extra-row">
+        <div class="shutdown-extra-row shutdown-standard-only">
           <span><i>*</i>卡支付/操作</span>
           <button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“电商成长卡”或操作过“加速起量”的订单，放弃自动关停</span>
         </div>
-        <div class="shutdown-extra-row shutdown-extra-indent">
+        <div class="shutdown-extra-row shutdown-extra-indent shutdown-standard-only">
           <span></span><button class="shutdown-mini-switch" type="button" aria-pressed="false"></button>
           <span>使用“成本保障券”的订单，放弃自动关停</span>
         </div>
@@ -1372,6 +1385,6 @@
   <div id="plan-field-tooltip" class="plan-field-tooltip" role="tooltip" hidden></div>
   <div id="shutdown-rule-tooltip" class="shutdown-rule-tooltip" role="tooltip" hidden></div>
 
-  <script src="长期计划.js?v=20260807-1"></script>
+  <script src="长期计划.js?v=20260828-2"></script>
 </body>
 </html>
