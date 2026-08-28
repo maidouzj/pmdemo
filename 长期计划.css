@@ -5037,13 +5037,13 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-extra-row { min-height: 42px; display: flex; align-items: center; gap: 10px; }
 .shutdown-extra-row select,.shutdown-extra-row input[type="number"] { width: 90px; height: 32px; padding: 0 10px; border: 1px solid #d6dce5; border-radius: 3px; background: #fff; }
 #shutdown-restart-row { display: grid; grid-template-columns: auto 40px minmax(0, 1fr); align-items: center; column-gap: 10px; row-gap: 4px; padding: 7px 0; }
-.shutdown-restart-config { min-width: 0; box-sizing: border-box; display: block; padding: 10px 14px; background: #f5f7fa; }
+.shutdown-restart-config { min-width: 0; box-sizing: border-box; display: block; }
 .shutdown-restart-config[hidden] { display: none; }
 .shutdown-restart-config[hidden] + .shutdown-restart-system-note { display: none; }
 .shutdown-restart-setting-row { min-height: 32px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .shutdown-restart-setting-row input[type="number"] { width: 88px; }
 .shutdown-restart-setting-row #shutdown-restart-description { color: #5f7292; }
-.shutdown-restart-system-note { grid-column: 1 / -1; margin: 0 0 0 10px; color: #97a3b7; line-height: 20px; }
+.shutdown-restart-system-note { grid-column: 3; margin: 0; color: #ff8500; line-height: 20px; }
 #shutdown-restart-error { grid-column: 3; }
 .shutdown-inline-error { color: #f04438; font-size: 12px; font-style: normal; white-space: nowrap; }
 .shutdown-inline-error[hidden] { display: none; }
