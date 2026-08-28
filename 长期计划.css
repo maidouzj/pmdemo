@@ -5038,13 +5038,15 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-extra-row select,.shutdown-extra-row input[type="number"] { width: 90px; height: 32px; padding: 0 10px; border: 1px solid #d6dce5; border-radius: 3px; background: #fff; }
 #shutdown-restart-row { align-items: flex-start; flex-wrap: wrap; padding: 7px 0; }
 #shutdown-restart-row > span:first-child { padding-top: 4px; }
-.shutdown-restart-config { width: auto; min-width: 0; box-sizing: border-box; flex: 0 0 calc(100% - 90px); display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0 90px; padding: 10px 14px; background: #f5f7fa; }
+.shutdown-restart-config { width: min(820px, calc(100% - 90px)); min-width: 0; box-sizing: border-box; flex: 0 1 820px; display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0 90px; padding: 12px 16px; border: 1px solid #e3e6eb; border-radius: 4px; background: #fafbfc; }
 .shutdown-restart-config[hidden] { display: none; }
 .shutdown-restart-setting-row { min-height: 32px; display: flex; align-items: center; gap: 12px; }
-.shutdown-restart-setting-row > span:first-child { width: 72px; flex: 0 0 72px; font-weight: 500; }
+.shutdown-restart-setting-row > span:first-child,.shutdown-restart-detail-row > span:first-child { width: 72px; flex: 0 0 72px; color: #3c485c; font-weight: 500; }
 .shutdown-restart-setting-row input[type="number"] { width: 88px; }
-.shutdown-restart-setting-row #shutdown-restart-description { color: #5d6878; }
-.shutdown-restart-system-note { margin: 0 0 0 84px; color: #8b95a5; line-height: 20px; }
+.shutdown-restart-detail-row { display: flex; align-items: flex-start; gap: 12px; min-height: 20px; line-height: 20px; }
+.shutdown-restart-detail-row #shutdown-restart-description { color: #5f7292; }
+.shutdown-restart-system-note { position: relative; margin: 2px 0 0 84px; padding: 10px 0 0 22px; border-top: 1px solid #ebedf1; color: #7787a2; line-height: 20px; }
+.shutdown-restart-system-note::before { content: "i"; position: absolute; top: 11px; left: 0; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #96bbf8; border-radius: 50%; color: #4787f0; font-size: 10px; font-weight: 600; line-height: 14px; }
 .shutdown-inline-error { color: #f04438; font-size: 12px; font-style: normal; white-space: nowrap; }
 .shutdown-inline-error[hidden] { display: none; }
 .shutdown-mini-switch { position: relative; width: 40px; height: 24px; flex: 0 0 40px; padding: 0; border: 0; border-radius: 12px; background: #c9d0da; cursor: pointer; }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>长期计划</title>
-  <link rel="stylesheet" href="长期计划.css?v=20260828-10">
+  <link rel="stylesheet" href="长期计划.css?v=20260828-11">
 </head>
 <body>
   <header class="topbar">
@@ -877,7 +877,11 @@
             <div class="shutdown-restart-setting-row">
               <span>关停后间隔</span>
               <input id="shutdown-restart-interval" type="number" min="1" max="12" step="1" placeholder="请输入" aria-label="关停后重启间隔小时数">
-              <span>小时重启，</span><span id="shutdown-restart-description">重启后观察 -- 小时，再次判断是否需要关停</span>
+              <span>小时后自动重启</span>
+            </div>
+            <div class="shutdown-restart-detail-row">
+              <span>重启判断</span>
+              <span id="shutdown-restart-description">重启后观察 -- 小时，再次判断是否需要关停</span>
             </div>
             <p class="shutdown-restart-system-note">人工关停不触发系统恢复；人工开启后，系统仍会按规则自动关停。（人工与系统操作互不影响）</p>
           </div>
