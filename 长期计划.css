@@ -5036,20 +5036,15 @@ body.sidebar-collapsed .collapse-button {
 
 .shutdown-extra-row { min-height: 42px; display: flex; align-items: center; gap: 10px; }
 .shutdown-extra-row select,.shutdown-extra-row input[type="number"] { width: 90px; height: 32px; padding: 0 10px; border: 1px solid #d6dce5; border-radius: 3px; background: #fff; }
-.shutdown-restart-hint { height: 24px; display: inline-flex; align-items: center; color: #8b95a5; }
-.shutdown-restart-hint[hidden] { display: none; }
 #shutdown-restart-row { align-items: flex-start; flex-wrap: wrap; padding: 7px 0; }
 #shutdown-restart-row > span:first-child { padding-top: 4px; }
 .shutdown-restart-config { width: auto; min-width: 0; box-sizing: border-box; flex: 0 0 calc(100% - 90px); display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0 90px; padding: 10px 14px; background: #f5f7fa; }
 .shutdown-restart-config[hidden] { display: none; }
-.shutdown-restart-mode-row,.shutdown-restart-setting-row { min-height: 32px; display: flex; align-items: center; gap: 12px; }
-.shutdown-restart-mode-row > span:first-child,.shutdown-restart-setting-row > span:first-child { width: 72px; flex: 0 0 72px; font-weight: 500; }
-.shutdown-restart-mode-row label { min-height: auto !important; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.shutdown-restart-mode-row input { width: auto !important; height: auto !important; padding: 0 !important; accent-color: #1f7bf2; }
+.shutdown-restart-setting-row { min-height: 32px; display: flex; align-items: center; gap: 12px; }
+.shutdown-restart-setting-row > span:first-child { width: 72px; flex: 0 0 72px; font-weight: 500; }
 .shutdown-restart-setting-row input[type="number"] { width: 88px; }
 .shutdown-restart-setting-row #shutdown-restart-description { color: #5d6878; }
 .shutdown-restart-system-note { margin: 0 0 0 84px; color: #8b95a5; line-height: 20px; }
-.shutdown-restart-mode-row label.is-disabled { color: #a5adba; }
 .shutdown-inline-error { color: #f04438; font-size: 12px; font-style: normal; white-space: nowrap; }
 .shutdown-inline-error[hidden] { display: none; }
 .shutdown-mini-switch { position: relative; width: 40px; height: 24px; flex: 0 0 40px; padding: 0; border: 0; border-radius: 12px; background: #c9d0da; cursor: pointer; }
