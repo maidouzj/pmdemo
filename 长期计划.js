@@ -2984,7 +2984,7 @@ function renderShutdownRulePanel() {
   shutdownRuleRelationAnd.disabled = isFixedLongTermStrategy;
   shutdownRuleRelationOr.checked = false;
   shutdownRuleRelationOr.disabled = isFixedLongTermStrategy;
-  shutdownOfflineWarning.hidden = true;
+  shutdownOfflineWarning.hidden = !(isLongTermPlan && strategyKind === '亏损/空耗监控');
 }
 
 function updateShutdownRuleRow(row) {
@@ -3036,7 +3036,7 @@ function syncShutdownPeriodUnits(nextUnit) {
     input.max = nextUnit === '小时' ? '12' : '';
     period.querySelector('em').textContent = nextUnit === '小时' ? '（1代表当前近60分钟）' : '（1代表当日）';
   });
-  shutdownOfflineWarning.hidden = nextUnit !== '小时';
+  shutdownOfflineWarning.hidden = false;
   shutdownRestartInterval.value = '';
   shutdownRestartError.hidden = true;
   updateShutdownRestartModeAvailability();

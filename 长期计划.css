@@ -5048,6 +5048,7 @@ body.sidebar-collapsed .collapse-button {
 .shutdown-restart-mode-row input { width: auto !important; height: auto !important; padding: 0 !important; accent-color: #1f7bf2; }
 .shutdown-restart-setting-row input[type="number"] { width: 88px; }
 .shutdown-restart-setting-row #shutdown-restart-description { color: #5d6878; }
+.shutdown-restart-system-note { margin: 0 0 0 84px; color: #8b95a5; line-height: 20px; }
 .shutdown-restart-mode-row label.is-disabled { color: #a5adba; }
 .shutdown-inline-error { color: #f04438; font-size: 12px; font-style: normal; white-space: nowrap; }
 .shutdown-inline-error[hidden] { display: none; }
