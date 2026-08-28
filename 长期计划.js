@@ -2984,7 +2984,7 @@ function renderShutdownRulePanel() {
   shutdownRuleRelationAnd.disabled = isFixedLongTermStrategy;
   shutdownRuleRelationOr.checked = false;
   shutdownRuleRelationOr.disabled = isFixedLongTermStrategy;
-  shutdownOfflineWarning.hidden = !(isLongTermPlan && strategyKind === '亏损/空耗监控');
+  shutdownOfflineWarning.hidden = !isFixedLongTermStrategy;
 }
 
 function updateShutdownRuleRow(row) {
@@ -3092,9 +3092,9 @@ function updateShutdownRestartDescription() {
       .map((input) => Number(input.value))
       .filter((value) => Number.isFinite(value) && value > 0);
     const observeHours = periods.length ? Math.max(...periods) : '--';
-    shutdownRestartDescription.textContent = `重启后观察 ${observeHours} 小时，再次判断是否需要关停（按规则中的最长查询周期计算）；仅处理系统自动关停/恢复`;
+    shutdownRestartDescription.textContent = `重启后观察 ${observeHours} 小时，再次判断是否需要关停（按规则中的最长查询周期计算）`;
   } else {
-    shutdownRestartDescription.textContent = '同一计划在同一自然日仅执行 1 次系统“关停→恢复”，次日重新开始；人工暂停/恢复不触发本功能';
+    shutdownRestartDescription.textContent = '同一计划在同一自然日仅执行 1 次系统“关停→恢复”，次日重新开始';
   }
 }
 

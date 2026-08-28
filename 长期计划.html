@@ -861,7 +861,7 @@
 
         <div id="shutdown-rule-panel" class="shutdown-rule-panel">
           <div id="shutdown-rule-list" class="shutdown-rule-list"></div>
-          <div id="shutdown-offline-warning" class="shutdown-offline-warning" hidden>请确保投放号持续在线。投放号掉线后，系统无法获取掉线期间数据的发生时间；重新上线后，掉线期间的数据可能集中计入当前查询周期，导致监控误关停</div>
+          <div id="shutdown-offline-warning" class="shutdown-offline-warning" hidden>投放号掉线期间数据无时间标记，重连后可能误算入当期，导致计划被误关停。请保持持续在线</div>
           <div class="shutdown-rule-actions"><span>最多可添加3个规则</span><button type="button">添加规则</button></div>
         </div>
 
@@ -885,7 +885,7 @@
               <input id="shutdown-restart-interval" type="number" min="1" max="12" step="1" placeholder="请输入" aria-label="关停后重启间隔小时数">
               <span>小时重启，</span><span id="shutdown-restart-description">同一计划在同一自然日仅执行 1 次系统“关停→恢复”，次日重新开始</span>
             </div>
-            <p class="shutdown-restart-system-note">关停/恢复由系统自动执行；人工暂停/恢复不触发自动执行，且不计入每日次数</p>
+            <p class="shutdown-restart-system-note">人工关停不触发系统恢复；人工开启后，系统仍会按规则自动关停。（人工与系统操作互不影响）</p>
           </div>
           <em id="shutdown-restart-error" class="shutdown-inline-error" hidden></em>
         </div>
@@ -1386,6 +1386,6 @@
   <div id="plan-field-tooltip" class="plan-field-tooltip" role="tooltip" hidden></div>
   <div id="shutdown-rule-tooltip" class="shutdown-rule-tooltip" role="tooltip" hidden></div>
 
-  <script src="长期计划.js?v=20260828-3"></script>
+  <script src="长期计划.js?v=20260828-4"></script>
 </body>
 </html>
