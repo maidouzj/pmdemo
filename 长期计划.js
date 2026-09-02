@@ -2930,7 +2930,7 @@ function refreshShutdownRuleConditionOptions() {
   });
 }
 
-function createShutdownRuleRow({ index, condition = '', operator = '', fixedCondition = false, fixedOperator = false, conditionChoices = null, durationUnit = '天', periodUnit = '天', periodUnitSwitch = false }) {
+function createShutdownRuleRow({ index, condition = '', operator = '', fixedCondition = false, fixedOperator = false, conditionChoices = null, durationUnit = '天', periodUnit = '天', periodUnitSwitch = false, trailingTip = '' }) {
   const isLongTermPlan = getSelectedShutdownFormPlanType() === '长期计划';
   const conditions = conditionChoices || (isLongTermPlan
     ? ['实际加热时长', '周期内消耗金额', '总消耗金额', '成交ROI']
@@ -2953,6 +2953,7 @@ function createShutdownRuleRow({ index, condition = '', operator = '', fixedCond
       <input class="shutdown-rule-value" type="number" min="0" step="1" placeholder="${condition ? '请输入' : '请先选择条件'}"${condition ? '' : ' disabled'}>
       <span class="shutdown-rule-unit"${unit ? '' : ' hidden'}>${unit}</span>
       <span class="shutdown-query-period"${showPeriod ? '' : ' hidden'}>查询数据周期近 <input class="shutdown-query-period-days" type="number" min="1"${periodUnit === '小时' ? ' max="12"' : ''} placeholder="请输入" aria-label="查询数据周期数值"> ${periodUnitControl} <em>${periodTip}</em></span>
+      ${trailingTip ? `<span class="shutdown-rule-tip">${trailingTip}</span>` : ''}
       ${index && !(fixedCondition && fixedOperator) ? '<button class="shutdown-rule-remove" type="button" aria-label="删除规则">×</button>' : ''}
     </div>`;
 }
@@ -2968,8 +2969,8 @@ function renderShutdownRulePanel() {
     ];
   } else if (isLongTermPlan && strategyKind === '低消监控') {
     rules = [
-      { condition: '总消耗金额', operator: '≤', fixedCondition: true, fixedOperator: true },
-      { condition: '实际加热时长', operator: '>', fixedCondition: true, fixedOperator: true, durationUnit: '小时' }
+      { condition: '周期内消耗金额', operator: '≤', fixedCondition: true, fixedOperator: true, periodUnit: '小时' },
+      { condition: '实际加热时长', operator: '>', fixedCondition: true, fixedOperator: true, durationUnit: '小时', trailingTip: '（1代表当前近60分钟）' }
     ];
   }
   shutdownRuleList.innerHTML = rules.map((rule, index) => createShutdownRuleRow({ index, ...rule })).join('');
@@ -3074,14 +3075,8 @@ function updateShutdownRestartDescription() {
   const periodValues = [...shutdownRuleList.querySelectorAll('.shutdown-query-period:not([hidden]) .shutdown-query-period-days')]
     .map((input) => Number(input.value))
     .filter((value) => Number.isFinite(value) && value > 0);
-  const heatingDuration = Number([...shutdownRuleList.querySelectorAll('.shutdown-rule-row')]
-    .find((row) => row.querySelector('.shutdown-rule-condition')?.value === '实际加热时长')
-    ?.querySelector('.shutdown-rule-value')?.value);
-  const observeHours = strategyKind === '低消监控'
-    ? (Number.isFinite(heatingDuration) && heatingDuration > 0 ? heatingDuration : '--')
-    : (periodValues.length ? Math.max(...periodValues) : '--');
-  const basis = strategyKind === '低消监控' ? '实际加热时长' : '最长查询周期';
-  shutdownRestartDescription.textContent = `重启后观察 ${observeHours} 小时，再次判断是否需要关停（按规则中的${basis}计算）`;
+  const observeHours = periodValues.length ? Math.max(...periodValues) : '--';
+  shutdownRestartDescription.textContent = `重启后观察 ${observeHours} 小时，再次判断是否需要关停（按规则中的最长查询周期计算）`;
 }
 
 function isIntegerInRange(value, min, max) {
